@@ -12,6 +12,9 @@ python-dotenv = "^1.0.1"
 torch-geometric = "^2.6.1"
 
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.5"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
