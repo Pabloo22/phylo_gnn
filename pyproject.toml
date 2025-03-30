@@ -11,6 +11,8 @@ python = "^3.12"
 python-dotenv = "^1.0.1"
 torch-geometric = "^2.6.1"
 pandas = "^2.2.3"
+types-tqdm = "^4.67.0.20250319"
+pandas-stubs = "^2.2.3.250308"
 
 
 [tool.poetry.group.dev.dependencies]
