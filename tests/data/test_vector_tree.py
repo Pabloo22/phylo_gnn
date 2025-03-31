@@ -1,5 +1,3 @@
-# test_vector_tree.py
-import pytest
 import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
 
@@ -106,7 +104,6 @@ def test_dist_to_root(vector_tree_levelorder: VectorTree):
 
 
 def test_dist_to_leaves(vector_tree_levelorder: VectorTree):
-    """Test calculation of maximum distance from node to leaves in its subtree."""
     tree = vector_tree_levelorder
     # Expected distances (calculated bottom-up):
     # Leaves A, B, C (indices 3, 4, 2): 0.0
@@ -138,7 +135,6 @@ def test_inverse_levels(vector_tree_levelorder: VectorTree):
     assert_array_equal(tree.inverse_levels, expected_inverse_levels)
 
 
-# Optional: Test edge case - tree with only a root
 def test_single_node_tree():
     """Test a tree consisting of only a single root node."""
     tree = VectorTree.from_newick("A:0;")
