@@ -1,12 +1,31 @@
 from __future__ import annotations
 
-from functools import cached_property
+from collections.abc import Callable
+from functools import cached_property, partial
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
 import ete3  # type: ignore[import-untyped]
 
 from phylo_gnn.ete3_utils import ID_ATTR, set_node_ids
+
+
+def extract_neg_subtree_sum_branch_lengths(
+    node_idx: int, vector_tree: VectorTree
+) -> float:
+    """Extracts the negative sum of branch lengths in the subtree for a given
+    node.
+
+    Args:
+        node_idx: The index of the node for which to calculate diversity
+        criteria.
+    """
+    node_subtree_sum = vector_tree.subtree_sum_branch_lengths[node_idx]
+    return -node_subtree_sum
+
+
+_DEFAULT_SORTING_CRITERIA = extract_neg_subtree_sum_branch_lengths
 
 
 class VectorTree:
@@ -18,6 +37,22 @@ class VectorTree:
     ):
         self.branch_lengths = branch_lengths
         self.children_indices = children_indices
+        self._positions_by_level: None | NDArray[np.int64] = None
+
+    @property
+    def position_in_level(self) -> NDArray[np.int64]:
+        """Returns the position of each node in its level.
+
+        The position is defined as the index of the node in the list of
+        children of its parent. The root node has no parent, so its position
+        is set to -1.
+        """
+        if self._positions_by_level is None:
+            raise ValueError(
+                "Position in level is not computed yet. "
+                "Call `set_position_in_level` first."
+            )
+        return self._positions_by_level
 
     @property
     def num_nodes(self) -> int:
@@ -84,13 +119,18 @@ class VectorTree:
             next_level = []
         return level
 
-    def iter_by_level(self, reverse: bool = False):
+    def iter_by_level(
+        self, reverse: bool = False, sort_level_nodes: bool = False
+    ):
         """Iterates through the nodes of the tree by level.
 
         Args:
             reverse:
                 If True, iterate from leaves to root (max level to 0).
                 If False, iterate from root to leaves (0 to max level).
+            sort_level_nodes:
+                If True, yields the level nodes sorted by the ladderization
+                order. If False, yields the level nodes in their original
 
         Yields:
             (level, indices) where indices is an array of node indices
@@ -152,13 +192,13 @@ class VectorTree:
         for _, level_nodes in self.iter_by_level(reverse=True):
             for node in level_nodes:
                 children = self.children_indices[node]
-                if children:
-                    # Find maximum distance to present through any child
-                    child_distances = [
-                        float(distances[child] + self.branch_lengths[child])
-                        for child in children
-                    ]
-                    distances[node] = max(child_distances)
+                if not children:
+                    continue
+                child_distances = [
+                    float(distances[child] + self.branch_lengths[child])
+                    for child in children
+                ]
+                distances[node] = max(child_distances)
 
         return distances
 
@@ -184,3 +224,57 @@ class VectorTree:
         level of that node.
         """
         return self.max_level - self.levels
+
+    def get_siblings(self, node: int) -> list[int]:
+        """Returns the sibling nodes of a given node.
+
+        Args:
+            node: The index of the node to find siblings for.
+
+        Returns:
+            A list of sibling node indices.
+        """
+        parent = self.parent_indices[node]
+        if parent == -1:
+            return []
+        return [
+            child for child in self.children_indices[parent] if child != node
+        ]
+
+    def set_positions_in_level(
+        self,
+        sorting_criteria: Callable = _DEFAULT_SORTING_CRITERIA,
+    ) -> NDArray[np.int64]:
+        """Rank nodes in each level based on a key function.
+
+        Args:
+            key:
+                A callable that takes a node index and a current ranks array
+                and returns a tuple of values to sort by.
+            reverse_iter:
+                If True, iterate from leaves to root
+                (max level to 0). If False, iterate from root to leaves
+                (0 to max level).
+
+        Returns:
+            An array of ranks for each node in the tree.
+        """
+        sorting_criteria = partial(sorting_criteria, vector_tree=self)
+
+        def key_fn(node_idx: int) -> tuple[int, Any, int]:
+            parent_rank = self.position_in_level[self.parent_indices[node_idx]]
+            return parent_rank, sorting_criteria(node_idx), node_idx
+
+        try:
+            self._positions_by_level = np.zeros(self.num_nodes, dtype=np.int64)
+            for level, level_nodes in self.iter_by_level():
+                if level == 0:
+                    continue
+                sorted_nodes = sorted(level_nodes, key=key_fn)
+                for pos, node in enumerate(sorted_nodes):
+                    self._positions_by_level[node] = pos
+        except Exception as e:
+            self._positions_by_level = None
+            raise e
+
+        return self._positions_by_level
