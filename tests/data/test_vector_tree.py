@@ -153,3 +153,19 @@ def test_single_node_tree():
     assert tree.leaves_indices == [0]
     assert tree.num_leaves == 1
     assert_array_equal(tree.inverse_levels, np.array([0], dtype=np.int64))
+
+
+# Add this test to test_vector_tree.py
+
+
+def test_positions_in_level(vector_tree_levelorder: VectorTree):
+    """Test the positions_in_level property based on ladderization."""
+    tree = vector_tree_levelorder
+    # Expected positions:
+    # Root (0): 0
+    # Level 1 Children of Root (0): Node 1 (sum 2.0), Node 2 (sum 0.0)
+    # -> Sorted [1, 2] -> Pos [0, 1]
+    # Level 2 Children of Node 1: Node 3 (sum 0.0), Node 4 (sum 0.0)
+    # -> Sorted [3, 4] (tie-break by index) -> Pos [0, 1]
+    expected_positions = np.array([0, 0, 1, 0, 1], dtype=np.int64)
+    assert_array_equal(tree.level_ranks_in_ladderized_tree, expected_positions)
