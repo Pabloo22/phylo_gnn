@@ -119,18 +119,13 @@ class VectorTree:
             next_level = []
         return level
 
-    def iter_by_level(
-        self, reverse: bool = False, sort_level_nodes: bool = False
-    ):
+    def iter_by_level(self, reverse: bool = False):
         """Iterates through the nodes of the tree by level.
 
         Args:
             reverse:
                 If True, iterate from leaves to root (max level to 0).
                 If False, iterate from root to leaves (0 to max level).
-            sort_level_nodes:
-                If True, yields the level nodes sorted by the ladderization
-                order. If False, yields the level nodes in their original
 
         Yields:
             (level, indices) where indices is an array of node indices
