@@ -27,10 +27,11 @@ class VectorTree:
     def from_newick(
         cls,
         newick: str,
-        nwk_format: int = 1,
         traverse_order: str = "levelorder",
+        nwk_format: int = 1,
+        **kwargs,
     ) -> VectorTree:
-        tree = ete3.Tree(newick, format=nwk_format)
+        tree = ete3.TreeNode(newick, format=nwk_format, **kwargs)
         return cls.from_ete3(tree, traverse_order)
 
     @classmethod
@@ -39,9 +40,6 @@ class VectorTree:
         tree: ete3.Tree,
         traverse_order: str = "levelorder",
     ) -> VectorTree:
-        """
-        Convert an ete3 Tree object to a VectorTree.
-        """
         set_node_ids(tree, traverse_strategy=traverse_order)
         branch_lengths = np.array(
             [node.dist for node in tree.traverse(traverse_order)],
@@ -110,13 +108,12 @@ class VectorTree:
 
     @cached_property
     def max_level(self) -> int:
-        """The maximum level of the tree."""
         return int(np.max(self.levels))
 
     @cached_property
     def subtree_sum_branch_lengths(self) -> NDArray[np.float32]:
-        """
-        Compute the sum of branch lengths in the subtree rooted at each node.
+        """Computes the sum of branch lengths in the subtree rooted at each
+        node.
 
         Returns:
             numpy array with the sum of branch lengths for each node's subtree
