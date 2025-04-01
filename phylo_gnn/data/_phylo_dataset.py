@@ -1,9 +1,9 @@
 import os
 from pathlib import Path
-from collections.abc import Callable
 from typing import Any
+from collections.abc import Callable
+from numpy.typing import NDArray
 import pandas as pd
-import torch
 from torch_geometric.data import InMemoryDataset, HeteroData  # type: ignore
 import tqdm
 
@@ -83,23 +83,11 @@ class CSVMetadata:
         return pd.concat(dfs, ignore_index=True)
 
 
-class PhyloClassificationDataset(InMemoryDataset):
-    """A flexible PyTorch Geometric Dataset class.
-
-    Reads raw data files from one or more csv files, each containing
-    phylogenetic trees in Newick format. Each tree is associated with a label.
-
-    Processes each raw file using a provided callable function that
-    returns a HeteroData (or Data) object.
-
-    Saves the processed HeteroData objects to a corresponding structure:
-    <root>/processed/<dataset_name>/<label_name>/<processed_file.pt>
-    """
-
+class PhyloCSVDataset(InMemoryDataset):
     def __init__(
         self,
         root: str,
-        process_func: Callable[[str], HeteroData],
+        process_func: Callable[[str, NDArray], HeteroData],
         csv_metadata: CSVMetadata,
         transform: Callable | None = None,
         pre_transform: Callable | None = None,
@@ -146,9 +134,7 @@ class PhyloClassificationDataset(InMemoryDataset):
             # Other columns are the target
             label = row[self.csv_metadata.column_names[1:]]
 
-            data = self.process_func(newick)
-            data.y = torch.tensor(label, dtype=torch.long)
-            data.y = data.y.unsqueeze(0)
+            data = self.process_func(newick, label.to_numpy())
             if self.pre_filter is not None and not self.pre_filter(data):
                 continue
             if self.pre_transform is not None:
