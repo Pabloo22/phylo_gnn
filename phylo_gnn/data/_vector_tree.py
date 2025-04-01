@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from functools import cached_property, partial
 from typing import Any
+import math
 
 import numpy as np
 from numpy.typing import NDArray
@@ -146,6 +147,18 @@ class VectorTree:
         return int(np.max(self.levels))
 
     @cached_property
+    def is_ultrametric(self) -> bool:
+        """Checks if the tree is ultrametric.
+
+        An ultrametric tree is one where all leaves are equidistant from the
+        root.
+        """
+        return np.allclose(
+            self.dist_to_root[self.leaves_indices],
+            self.dist_to_root[self.leaves_indices][0],
+        )
+
+    @cached_property
     def subtree_sum_branch_lengths(self) -> NDArray[np.float32]:
         """Computes the sum of branch lengths in the subtree rooted at each
         node.
@@ -183,6 +196,14 @@ class VectorTree:
 
     @cached_property
     def dist_to_leaves(self) -> NDArray[np.float32]:
+        """Returns the distance from each node to its descendant leaves.
+
+        The distance is defined as the maximum distance from the node to any
+        of its descendant leaves.
+        """
+        # if self.is_ultrametric:
+        #     # More efficient calculation for ultrametric trees
+        #     return self._get_dist_to_leaves_in_ultrametric_tree()
         distances = np.zeros_like(self.branch_lengths)
         for _, level_nodes in self.iter_by_level(reverse=True):
             for node in level_nodes:
@@ -195,21 +216,71 @@ class VectorTree:
                 ]
                 distances[node] = max(child_distances)
 
+        if self.is_ultrametric:
+            distances_2 = self._get_dist_to_leaves_in_ultrametric_tree()
+            assert np.allclose(
+                distances, distances_2
+            ), "Distances should be equal for ultrametric trees"
+        return distances
+
+    def _get_dist_to_leaves_in_ultrametric_tree(self) -> NDArray[np.float32]:
+        """More vectorized version of dist_to_leaves for ultrametric trees."""
+        # For ultrametric trees, the distance from any node to its descendant
+        # leaves is the same for all leaves in its subtree
+        distances = np.zeros_like(self.branch_lengths)
+        for _, level_nodes in self.iter_by_level(reverse=True):
+            non_leaf_nodes = [
+                node for node in level_nodes if not self.is_leaf(node)
+            ]
+            first_children = [
+                self.children_indices[node][0] for node in non_leaf_nodes
+            ]
+            distances[non_leaf_nodes] = (
+                distances[first_children] + self.branch_lengths[first_children]
+            )
         return distances
 
     @cached_property
     def leaves_indices(self) -> list[int]:
         """Returns the indices of the leaves in the tree."""
-        return [
-            node
-            for node in range(self.num_nodes)
-            if not self.children_indices[node]
-        ]
+        return [node for node in range(self.num_nodes) if self.is_leaf(node)]
 
     @property
     def num_leaves(self) -> int:
         """Returns the number of leaves in the tree."""
         return len(self.leaves_indices)
+
+    @cached_property
+    def num_leaves_array(self) -> NDArray[np.int64]:
+        """Returns the number of leaves under each node's subtree."""
+        num_leaves = np.zeros(self.num_nodes, dtype=np.int64)
+        num_leaves[self.leaves_indices] = 1
+        for level, level_nodes in self.iter_by_level(reverse=True):
+            if level == 0:  # Root has no parent
+                continue
+            parents = self.parent_indices[level_nodes]
+            np.add.at(num_leaves, parents, num_leaves[level_nodes])
+
+        assert np.max(num_leaves) == self.num_leaves, (
+            f"Max number of leaves {np.max(num_leaves)} "
+            f"does not match expected {self.num_leaves}"
+            f" for {self.num_nodes} nodes"
+            f" and {self.max_level} levels."
+            f" Num leaves array: {num_leaves}"
+        )
+        assert np.min(num_leaves) == 1
+        return num_leaves
+
+    def is_leaf(self, node_idx: int) -> bool:
+        """Checks if a given node is a leaf.
+
+         Args:
+             node_idx: The index of the node to check.
+
+        Returns:
+             True if the node is a leaf, False otherwise.
+        """
+        return not self.children_indices[node_idx]
 
     @cached_property
     def inverse_levels(self) -> NDArray[np.int64]:
