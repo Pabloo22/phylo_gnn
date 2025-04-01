@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from functools import cached_property, partial
-from typing import Any
+from typing import Any, TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
@@ -10,6 +10,8 @@ import ete3  # type: ignore[import-untyped]
 
 from phylo_gnn.ete3_utils import ID_ATTR, set_node_ids
 
+
+NumpyInt = TypeVar("NumpyInt", bound=np.integer)
 
 def extract_neg_subtree_sum_branch_lengths(
     node_idx: int, vector_tree: VectorTree
@@ -368,3 +370,80 @@ class VectorTree:
             raise e
 
         return self._positions_by_level
+
+    def get_most_recent_common_ancestor(self, node1: int, node2: int) -> int:
+        """Returns the most recent common ancestor of two nodes."""
+        if node1 == node2:
+            return node1
+        ancestor_1 = node1
+        ancestor_2 = node2
+        while ancestor_1 != ancestor_2:
+            if self.levels[ancestor_1] > self.levels[ancestor_2]:
+                ancestor_1 = self.parent_indices[ancestor_1]
+            else:
+                ancestor_2 = self.parent_indices[ancestor_2]
+            if ancestor_1 == -1 or ancestor_2 == -1:
+                raise ValueError(
+                    f"Nodes {node1} and {node2} are not in the same tree."
+                )
+        return ancestor_1
+
+    def get_most_recent_common_ancestors(
+        self,
+        nodes_1: NDArray[np.integer] | Sequence[int],
+        nodes_2: NDArray[np.integer] | Sequence[int],
+    ) -> NDArray[np.int64]:
+        """Returns the most recent common ancestors of two sets of nodes."""
+        # Ensure input arrays have the same length
+        if len(nodes_1) != len(nodes_2):
+            raise ValueError("Input arrays must have the same length")
+
+        # Convert inputs to numpy arrays with int64 dtype
+        n1 = np.asarray(nodes_1, dtype=np.int64)
+        n2 = np.asarray(nodes_2, dtype=np.int64)
+
+        # Initialize result array
+        result = np.empty_like(n1)
+
+        # Fast path: same nodes are their own MRCA
+        same = n1 == n2
+        result[same] = n1[same]
+
+        # Only process different nodes
+        diff = ~same
+        if not np.any(diff):
+            return result
+
+        # Extract the different nodes for processing
+        a1 = n1[diff].copy()
+        a2 = n2[diff].copy()
+
+        # Get levels for equalization
+        l1 = self.levels[a1]
+        l2 = self.levels[a2]
+
+        # Equalize levels first by moving deeper nodes up
+        while np.any(l1 != l2):
+            deeper1 = l1 > l2
+            deeper2 = l2 > l1
+
+            a1[deeper1] = self.parent_indices[a1[deeper1]]
+            l1[deeper1] -= 1
+            a2[deeper2] = self.parent_indices[a2[deeper2]]
+            l2[deeper2] -= 1
+
+        # Now move both up until they meet
+        while np.any(a1 != a2):
+            not_equal = a1 != a2
+            a1[not_equal] = self.parent_indices[a1[not_equal]]
+            a2[not_equal] = self.parent_indices[a2[not_equal]]
+
+            # Check if any nodes reached root without finding MRCA
+            invalid = (a1 == -1) | (a2 == -1)
+            if np.any(invalid):
+                raise ValueError("Some nodes do not share a common ancestor")
+
+        # Store results
+        result[diff] = a1
+
+        return result
