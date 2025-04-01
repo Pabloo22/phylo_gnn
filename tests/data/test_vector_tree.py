@@ -100,7 +100,7 @@ def test_dist_to_root(vector_tree_levelorder: VectorTree):
     # A (3): dist(Internal) + branch(A) = 1.0 + 1.0 = 2.0
     # B (4): dist(Internal) + branch(B) = 1.0 + 1.0 = 2.0
     expected_distances = np.array([0.0, 1.0, 2.0, 2.0, 2.0], dtype=np.float32)
-    assert_allclose(tree.dist_to_root, expected_distances, atol=1e-6)
+    assert_allclose(tree.distance_to_root, expected_distances, atol=1e-6)
 
 
 def test_dist_to_leaves(vector_tree_levelorder: VectorTree):
@@ -113,7 +113,9 @@ def test_dist_to_leaves(vector_tree_levelorder: VectorTree):
     # branch(C))
     #              = max(1.0 + 1.0, 0.0 + 2.0) = max(2.0, 2.0) = 2.0
     expected_distances = np.array([2.0, 1.0, 0.0, 0.0, 0.0], dtype=np.float32)
-    assert_allclose(tree.dist_to_leaves, expected_distances, atol=1e-6)
+    assert_allclose(
+        tree._get_distance_to_leaves, expected_distances, atol=1e-6
+    )
 
 
 def test_leaves_indices_and_num_leaves(vector_tree_levelorder: VectorTree):
@@ -148,8 +150,8 @@ def test_single_node_tree():
     assert_allclose(
         tree.subtree_sum_branch_lengths, np.array([0.0], dtype=np.float32)
     )
-    assert_allclose(tree.dist_to_root, np.array([0.0], dtype=np.float32))
-    assert_allclose(tree.dist_to_leaves, np.array([0.0], dtype=np.float32))
+    assert_allclose(tree.distance_to_root, np.array([0.0], dtype=np.float32))
+    assert_allclose(tree.distance_to_leaves, np.array([0.0], dtype=np.float32))
     assert tree.leaves_indices == [0]
     assert tree.num_leaves == 1
     assert_array_equal(tree.inverse_levels, np.array([0], dtype=np.int64))
