@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections.abc import Callable
 from functools import cached_property, partial
 from typing import Any
-import math
 
 import numpy as np
 from numpy.typing import NDArray
@@ -154,8 +153,8 @@ class VectorTree:
         root.
         """
         return np.allclose(
-            self.dist_to_root[self.leaves_indices],
-            self.dist_to_root[self.leaves_indices][0],
+            self.distance_to_root[self.leaves_indices],
+            self.distance_to_root[self.leaves_indices][0],
         )
 
     @cached_property
@@ -182,7 +181,7 @@ class VectorTree:
         return subtree_sums
 
     @cached_property
-    def dist_to_root(self) -> NDArray[np.float32]:
+    def distance_to_root(self) -> NDArray[np.float32]:
         """Returns the sum of branch lengths from each node to the root."""
         distances = np.zeros_like(self.branch_lengths)
         for level, level_nodes in self.iter_by_level():
@@ -195,39 +194,64 @@ class VectorTree:
         return distances
 
     @cached_property
-    def dist_to_leaves(self) -> NDArray[np.float32]:
+    def distance_to_leaves(self) -> NDArray[np.float32]:
         """Returns the distance from each node to its descendant leaves.
 
         The distance is defined as the maximum distance from the node to any
         of its descendant leaves.
         """
-        # if self.is_ultrametric:
-        #     # More efficient calculation for ultrametric trees
-        #     return self._get_dist_to_leaves_in_ultrametric_tree()
+        return self._get_distance_to_leaves(topological=False)
+
+    @cached_property
+    def topological_distance_to_leaves(self) -> NDArray[np.float32]:
+        """Returns the distance from each node to its descendant leaves.
+
+        The distance is defined as the maximum distance from the node to any
+        of its descendant leaves.
+        """
+        return self._get_distance_to_leaves(topological=True)
+
+    def _get_distance_to_leaves(
+        self, topological: bool = False
+    ) -> NDArray[np.float32]:
+        """Returns the distance from each node to its descendant leaves.
+
+        The distance is defined as the maximum distance from the node to any
+        of its descendant leaves.
+        """
+        if self.is_ultrametric:
+            # More efficient calculation for ultrametric trees
+            return self._get_distance_to_leaves_in_ultrametric_tree()
         distances = np.zeros_like(self.branch_lengths)
+        branch_lengths = (
+            self.branch_lengths
+            if not topological
+            else np.ones_like(self.branch_lengths)
+        )
         for _, level_nodes in self.iter_by_level(reverse=True):
             for node in level_nodes:
                 children = self.children_indices[node]
                 if not children:
                     continue
                 child_distances = [
-                    float(distances[child] + self.branch_lengths[child])
+                    float(distances[child] + branch_lengths[child])
                     for child in children
                 ]
                 distances[node] = max(child_distances)
-
-        if self.is_ultrametric:
-            distances_2 = self._get_dist_to_leaves_in_ultrametric_tree()
-            assert np.allclose(
-                distances, distances_2
-            ), "Distances should be equal for ultrametric trees"
         return distances
 
-    def _get_dist_to_leaves_in_ultrametric_tree(self) -> NDArray[np.float32]:
+    def _get_distance_to_leaves_in_ultrametric_tree(
+        self, topological: bool = False
+    ) -> NDArray[np.float32]:
         """More vectorized version of dist_to_leaves for ultrametric trees."""
         # For ultrametric trees, the distance from any node to its descendant
         # leaves is the same for all leaves in its subtree
         distances = np.zeros_like(self.branch_lengths)
+        branch_lengths = (
+            self.branch_lengths
+            if not topological
+            else np.ones_like(self.branch_lengths)
+        )
         for _, level_nodes in self.iter_by_level(reverse=True):
             non_leaf_nodes = [
                 node for node in level_nodes if not self.is_leaf(node)
@@ -236,7 +260,7 @@ class VectorTree:
                 self.children_indices[node][0] for node in non_leaf_nodes
             ]
             distances[non_leaf_nodes] = (
-                distances[first_children] + self.branch_lengths[first_children]
+                distances[first_children] + branch_lengths[first_children]
             )
         return distances
 
