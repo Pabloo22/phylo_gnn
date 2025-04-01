@@ -1,7 +1,8 @@
 import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
+import pytest
 
-from phylo_gnn.data import VectorTree
+from phylo_gnn.encoding import VectorTree
 
 
 def test_initialization_and_num_nodes(vector_tree_levelorder: VectorTree):
@@ -114,7 +115,7 @@ def test_dist_to_leaves(vector_tree_levelorder: VectorTree):
     #              = max(1.0 + 1.0, 0.0 + 2.0) = max(2.0, 2.0) = 2.0
     expected_distances = np.array([2.0, 1.0, 0.0, 0.0, 0.0], dtype=np.float32)
     assert_allclose(
-        tree._get_distance_to_leaves, expected_distances, atol=1e-6
+        tree.distance_to_leaves, expected_distances, atol=1e-6
     )
 
 
@@ -188,3 +189,152 @@ def test_num_leaves_array_single_node():
     tree = VectorTree.from_newick("A:0;")
     expected_num_leaves = np.array([1], dtype=np.int64)
     assert_array_equal(tree.num_leaves_array, expected_num_leaves)
+
+
+def test_mrca_empty_input(sample_vector_tree: VectorTree):
+    """Test MRCA calculation with empty input arrays."""
+    nodes_1 = np.array([], dtype=np.int64)
+    nodes_2 = np.array([], dtype=np.int64)
+    expected = np.array([], dtype=np.int64)
+    result = sample_vector_tree.get_most_recent_common_ancestors(
+        nodes_1, nodes_2
+    )
+    assert_array_equal(result, expected)
+
+
+def test_mrca_identical_nodes(sample_vector_tree: VectorTree):
+    """Test MRCA when input nodes in a pair are identical."""
+    nodes_1 = np.array([3, 6, 0, 1], dtype=np.int64)
+    nodes_2 = np.array([3, 6, 0, 1], dtype=np.int64)
+    expected = np.array(
+        [3, 6, 0, 1], dtype=np.int64
+    )  # MRCA is the node itself
+    result = sample_vector_tree.get_most_recent_common_ancestors(
+        nodes_1, nodes_2
+    )
+    assert_array_equal(result, expected)
+
+
+def test_mrca_direct_ancestor(sample_vector_tree: VectorTree):
+    """Test MRCA when one node is a direct ancestor of the other."""
+    # Pairs: (descendant, ancestor)
+    nodes_1 = np.array([3, 7, 1, 4, 0], dtype=np.int64)
+    nodes_2 = np.array(
+        [1, 2, 0, 1, 0], dtype=np.int64
+    )  # Corresponding ancestors
+    expected = np.array(
+        [1, 2, 0, 1, 0], dtype=np.int64
+    )  # Expected MRCA is the ancestor
+    result = sample_vector_tree.get_most_recent_common_ancestors(
+        nodes_1, nodes_2
+    )
+    assert_array_equal(result, expected)
+
+    # Pairs: (ancestor, descendant) - order shouldn't matter
+    nodes_1_rev = np.array([1, 2, 0, 1, 0], dtype=np.int64)
+    nodes_2_rev = np.array([3, 7, 1, 4, 0], dtype=np.int64)
+    expected_rev = np.array([1, 2, 0, 1, 0], dtype=np.int64)
+    result_rev = sample_vector_tree.get_most_recent_common_ancestors(
+        nodes_1_rev, nodes_2_rev
+    )
+    assert_array_equal(result_rev, expected_rev)
+
+
+def test_mrca_siblings(sample_vector_tree: VectorTree):
+    """Test MRCA for sibling nodes."""
+    # Pairs of siblings
+    nodes_1 = np.array([3, 6, 1], dtype=np.int64)
+    nodes_2 = np.array([4, 7, 2], dtype=np.int64)  # Corresponding siblings
+    expected = np.array(
+        [1, 2, 0], dtype=np.int64
+    )  # Expected MRCA is the parent
+    result = sample_vector_tree.get_most_recent_common_ancestors(
+        nodes_1, nodes_2
+    )
+    assert_array_equal(result, expected)
+
+
+def test_mrca_cousins_and_different_levels(sample_vector_tree: VectorTree):
+    """Test MRCA for nodes at same or different levels (cousins)."""
+    # Pairs: (node_level_2, node_level_2) -> MRCA level 0 or 1
+    nodes_1 = np.array([3, 4, 3, 6], dtype=np.int64)
+    nodes_2 = np.array([5, 6, 7, 5], dtype=np.int64)
+    expected = np.array([1, 0, 0, 0], dtype=np.int64)  # MRCAs are 1, 0, 0, 0
+    result = sample_vector_tree.get_most_recent_common_ancestors(
+        nodes_1, nodes_2
+    )
+    assert_array_equal(result, expected)
+
+    # Pairs: (node_level_1, node_level_2) -> MRCA level 0 or 1
+    nodes_1_diff = np.array([1, 2, 1], dtype=np.int64)
+    nodes_2_diff = np.array([6, 5, 7], dtype=np.int64)
+    expected_diff = np.array([0, 0, 0], dtype=np.int64)  # MRCAs are 0, 0, 0
+    result_diff = sample_vector_tree.get_most_recent_common_ancestors(
+        nodes_1_diff, nodes_2_diff
+    )
+    assert_array_equal(result_diff, expected_diff)
+
+
+def test_mrca_involving_root(sample_vector_tree: VectorTree):
+    """Test MRCA when one node is the root or the MRCA is the root."""
+    nodes_1 = np.array([0, 0, 3, 1], dtype=np.int64)
+    nodes_2 = np.array([0, 5, 6, 2], dtype=np.int64)
+    expected = np.array(
+        [0, 0, 0, 0], dtype=np.int64
+    )  # MRCA involving root is root
+    result = sample_vector_tree.get_most_recent_common_ancestors(
+        nodes_1, nodes_2
+    )
+    assert_array_equal(result, expected)
+
+
+def test_mrca_mixed_cases(sample_vector_tree: VectorTree):
+    """Test MRCA with a mix of different relationship types."""
+    nodes_1 = np.array([3, 1, 4, 7, 6, 0], dtype=np.int64)
+    nodes_2 = np.array(
+        [
+            3,  # Identical
+            0,  # Ancestor
+            6,  # Cousin (MRCA root)
+            2,  # Ancestor
+            7,  # Sibling (MRCA parent 2)
+            0,
+        ],  # Identical (root)
+        dtype=np.int64,
+    )
+    expected = np.array([3, 0, 0, 2, 2, 0], dtype=np.int64)
+    result = sample_vector_tree.get_most_recent_common_ancestors(
+        nodes_1, nodes_2
+    )
+    assert_array_equal(result, expected)
+
+
+def test_mrca_different_input_types(sample_vector_tree: VectorTree):
+    """Test MRCA with Python lists and different numpy int types."""
+    nodes_1_list = [3, 7]
+    nodes_2_list = [6, 5]
+    expected_list = np.array([0, 0], dtype=np.int64)
+    result_list = sample_vector_tree.get_most_recent_common_ancestors(
+        nodes_1_list, nodes_2_list
+    )
+    assert_array_equal(result_list, expected_list)
+    assert result_list.dtype == np.int64  # Implementation should return int64
+
+    nodes_1_int32 = np.array([4, 1], dtype=np.int32)
+    nodes_2_int32 = np.array([7, 2], dtype=np.int32)
+    expected_int32 = np.array([0, 0], dtype=np.int64)
+    result_int32 = sample_vector_tree.get_most_recent_common_ancestors(
+        nodes_1_int32, nodes_2_int32
+    )
+    assert_array_equal(result_int32, expected_int32)
+    assert result_int32.dtype == np.int64
+
+
+def test_mrca_different_lengths_raises_error(sample_vector_tree: VectorTree):
+    """Test that providing arrays of different lengths raises ValueError."""
+    nodes_1 = np.array([1, 2], dtype=np.int64)
+    nodes_2 = np.array([3], dtype=np.int64)
+    with pytest.raises(
+        ValueError, match="Input arrays must have the same length"
+    ):
+        sample_vector_tree.get_most_recent_common_ancestors(nodes_1, nodes_2)
