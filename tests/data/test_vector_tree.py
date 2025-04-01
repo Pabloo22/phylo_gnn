@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
 
-from phylo_gnn.data import VectorTree  # Assuming your module structure
+from phylo_gnn.data import VectorTree
 
 
 def test_initialization_and_num_nodes(vector_tree_levelorder: VectorTree):
@@ -155,9 +155,6 @@ def test_single_node_tree():
     assert_array_equal(tree.inverse_levels, np.array([0], dtype=np.int64))
 
 
-# Add this test to test_vector_tree.py
-
-
 def test_positions_in_level(vector_tree_levelorder: VectorTree):
     """Test the positions_in_level property based on ladderization."""
     tree = vector_tree_levelorder
@@ -168,4 +165,24 @@ def test_positions_in_level(vector_tree_levelorder: VectorTree):
     # Level 2 Children of Node 1: Node 3 (sum 0.0), Node 4 (sum 0.0)
     # -> Sorted [3, 4] (tie-break by index) -> Pos [0, 1]
     expected_positions = np.array([0, 0, 1, 0, 1], dtype=np.int64)
-    assert_array_equal(tree.level_ranks_in_ladderized_tree, expected_positions)
+    assert_array_equal(tree.set_positions_in_level(), expected_positions)
+
+
+def test_num_leaves_array(vector_tree_levelorder: VectorTree):
+    """Test the num_leaves_array property."""
+    tree = vector_tree_levelorder
+    # Expected leaf counts:
+    # Node 0 (root): 3 leaves (2, 3, 4)
+    # Node 1: 2 leaves (3, 4)
+    # Node 2: 1 leaf (itself)
+    # Node 3: 1 leaf (itself)
+    # Node 4: 1 leaf (itself)
+    expected_num_leaves = np.array([3, 2, 1, 1, 1], dtype=np.int64)
+    assert_array_equal(tree.num_leaves_array, expected_num_leaves)
+
+
+def test_num_leaves_array_single_node():
+    """Test num_leaves_array for a single node tree."""
+    tree = VectorTree.from_newick("A:0;")
+    expected_num_leaves = np.array([1], dtype=np.int64)
+    assert_array_equal(tree.num_leaves_array, expected_num_leaves)
