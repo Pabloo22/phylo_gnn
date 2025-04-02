@@ -9,13 +9,12 @@ from numpy.typing import NDArray
 from phylo_gnn.encoding import VectorTree
 
 
+EdgeIndices = dict[tuple[str, str, str], NDArray[np.int64]]
 EncodingFunction = Callable[[str, NDArray], HeteroData]
 NodeFeatureExtractor = Callable[[VectorTree], dict[str, NDArray[np.float32]]]
-EdgeIndicesExtractor = Callable[
-    [VectorTree], dict[tuple[str, str, str], NDArray[np.int64]]
-]
+EdgeIndicesExtractor = Callable[[VectorTree], EdgeIndices]
 EdgeFeatureExtractor = Callable[
-    [VectorTree], dict[tuple[str, str, str], NDArray[np.float32]]
+    [VectorTree, EdgeIndices], dict[tuple[str, str, str], NDArray[np.float32]]
 ]
 TargetProcessor = (
     Callable[[NDArray], torch.Tensor]

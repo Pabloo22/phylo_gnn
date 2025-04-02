@@ -36,7 +36,7 @@ def get_encoding_function(
         _add_edge_indices(hetero_data, edge_indices_dict)
 
         edge_attributes_dict = (
-            edge_attribute_extractor(tree_vector)
+            edge_attribute_extractor(tree_vector, edge_indices_dict)
             if edge_attribute_extractor is not None
             else {}
         )
