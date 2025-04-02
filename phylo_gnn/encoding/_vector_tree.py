@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from functools import cached_property, partial
-from typing import Any, TypeVar
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -10,8 +10,6 @@ import ete3  # type: ignore[import-untyped]
 
 from phylo_gnn.ete3_utils import ID_ATTR, set_node_ids
 
-
-NumpyInt = TypeVar("NumpyInt", bound=np.integer)
 
 def extract_neg_subtree_sum_branch_lengths(
     node_idx: int, vector_tree: VectorTree
@@ -447,6 +445,72 @@ class VectorTree:
         result[diff] = a1
 
         return result
+
+    def get_distance(self, node_1: int, node_2: int) -> float:
+        """Returns the distance between two nodes."""
+        if node_1 == node_2:
+            return 0.0
+        ancestor = self.get_most_recent_common_ancestor(node_1, node_2)
+        return (
+            self.distance_to_root[node_1]
+            + self.distance_to_root[node_2]
+            - 2 * self.distance_to_root[ancestor]
+        )
+
+    def get_distances(
+        self,
+        nodes_1: NDArray[np.integer] | Sequence[int],
+        nodes_2: NDArray[np.integer] | Sequence[int],
+    ) -> NDArray[np.float32]:
+        """Returns the distances between two sets of nodes.
+
+        Args:
+            nodes_1:
+                First set of node indices
+            nodes_2:
+                Second set of node indices. Must have the same length as
+                nodes_1.
+
+        Returns:
+            Array of distances between corresponding pairs of nodes.
+        """
+        if len(nodes_1) != len(nodes_2):
+            raise ValueError("Input arrays must have the same length")
+        mrcas = self.get_most_recent_common_ancestors(nodes_1, nodes_2)
+        distances = (
+            self.distance_to_root[nodes_1]
+            + self.distance_to_root[nodes_2]
+            - 2 * self.distance_to_root[mrcas]
+        ).astype(np.float32)
+        return distances
+
+    def get_topological_distances(
+        self,
+        nodes_1: NDArray[np.integer] | Sequence[int],
+        nodes_2: NDArray[np.integer] | Sequence[int],
+    ) -> NDArray[np.float32]:
+        """Returns the topological distances between two sets of nodes.
+
+        Args:
+            nodes_1:
+                First set of node indices
+            nodes_2:
+                Second set of node indices. Must have the same length as
+                nodes_1.
+
+        Returns:
+            Array of topological distances between corresponding pairs of
+            nodes.
+        """
+        if len(nodes_1) != len(nodes_2):
+            raise ValueError("Input arrays must have the same length")
+        mrcas = self.get_most_recent_common_ancestors(nodes_1, nodes_2)
+        distances = (
+            self.topological_distance_to_leaves[nodes_1]
+            + self.topological_distance_to_leaves[nodes_2]
+            - 2 * self.topological_distance_to_leaves[mrcas]
+        ).astype(np.float32)
+        return distances
 
     @cached_property
     def is_binary(self) -> bool:
