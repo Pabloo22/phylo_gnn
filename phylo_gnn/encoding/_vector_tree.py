@@ -447,3 +447,29 @@ class VectorTree:
         result[diff] = a1
 
         return result
+
+    @cached_property
+    def is_binary(self) -> bool:
+        """Checks if the tree is binary.
+
+        A binary tree is a tree where each node has at most two children.
+        """
+        return all(len(children) <= 2 for children in self.children_indices)
+
+    @cached_property
+    def depth(self) -> int:
+        """Returns the depth of the tree.
+
+        The depth of a tree is the length of the longest topological path
+        from the root to a leaf.
+        """
+        return int(np.max(self.levels)) + 1
+
+    @cached_property
+    def height(self) -> float:
+        """Returns the height of the tree.
+
+        The height of a tree is the length of the longest path from the
+        root to any leaf, measured in branch lengths.
+        """
+        return float(np.max(self.distance_to_root))
