@@ -372,3 +372,49 @@ def test_parent_to_children_edge_index(
     assert sample_edge_index.dtype == np.int64
     assert sample_edge_index.shape == (2, 7)  # 2 rows, 7 edges
     assert_array_equal(sample_edge_index, expected_sample)
+
+
+def test_children_to_parent_edge_index(
+    vector_tree_levelorder: VectorTree, sample_vector_tree: VectorTree
+):
+    """Test that children_to_parent_edge_index returns the correct edge
+    indices."""
+    edge_index_parent_to_children = (
+        vector_tree_levelorder.parent_to_children_edge_index
+    ).copy()
+    # Test for vector_tree_levelorder
+    edge_index = vector_tree_levelorder.children_to_parent_edge_index
+    # Check that it does not modify the original edge_index
+    assert_array_equal(
+        edge_index_parent_to_children,
+        vector_tree_levelorder.parent_to_children_edge_index,
+    )
+    # Expected edges: (child -> parent)
+    # 1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1
+    expected_children = np.array([1, 2, 3, 4], dtype=np.int64)
+    expected_parents = np.array([0, 0, 1, 1], dtype=np.int64)
+    expected = np.vstack((expected_children, expected_parents))
+
+    assert edge_index.dtype == np.int64
+    assert edge_index.shape == (2, 4)  # 2 rows (child/parent), 4 edges
+    assert_array_equal(edge_index, expected)
+
+    # Test for sample_vector_tree (more complex structure)
+    sample_edge_index = sample_vector_tree.children_to_parent_edge_index
+
+    # Expected edges for sample tree:
+    # 1 -> 0, 2 -> 0, 3 -> 1, 4 -> 1, 5 -> 1, 6 -> 2, 7 -> 2
+    expected_sample_children = np.array([1, 2, 3, 4, 5, 6, 7], dtype=np.int64)
+    expected_sample_parents = np.array([0, 0, 1, 1, 1, 2, 2], dtype=np.int64)
+    expected_sample = np.vstack(
+        (expected_sample_children, expected_sample_parents)
+    )
+
+    assert sample_edge_index.dtype == np.int64
+    assert sample_edge_index.shape == (2, 7)  # 2 rows, 7 edges
+    assert_array_equal(sample_edge_index, expected_sample)
+
+    # Verify the relationship with parent_to_children_edge_index
+    parent_to_children = vector_tree_levelorder.parent_to_children_edge_index
+    children_to_parent = vector_tree_levelorder.children_to_parent_edge_index
+    assert_array_equal(parent_to_children[[1, 0], :], children_to_parent)

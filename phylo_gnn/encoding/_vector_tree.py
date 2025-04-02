@@ -483,3 +483,10 @@ class VectorTree:
             for child in children:
                 edge_index.append([parent, child])
         return np.array(edge_index, dtype=np.int64).T
+
+    @cached_property
+    def children_to_parent_edge_index(self) -> NDArray[np.int64]:
+        """Returns the edge index for children-to-parent connections in COO
+        format."""
+        edge_index = self.parent_to_children_edge_index
+        return np.vstack((edge_index[1], edge_index[0]))
