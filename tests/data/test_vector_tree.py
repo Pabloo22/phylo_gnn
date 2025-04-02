@@ -338,3 +338,37 @@ def test_mrca_different_lengths_raises_error(sample_vector_tree: VectorTree):
         ValueError, match="Input arrays must have the same length"
     ):
         sample_vector_tree.get_most_recent_common_ancestors(nodes_1, nodes_2)
+
+
+def test_parent_to_children_edge_index(
+    vector_tree_levelorder: VectorTree, sample_vector_tree: VectorTree
+):
+    """Test that parent_to_children_edge_index returns the correct edge
+    indices."""
+    # Test for vector_tree_levelorder
+    edge_index = vector_tree_levelorder.parent_to_children_edge_index
+
+    # Expected edges: (parent -> child)
+    # 0 -> 1, 0 -> 2, 1 -> 3, 1 -> 4
+    expected_parents = np.array([0, 0, 1, 1], dtype=np.int64)
+    expected_children = np.array([1, 2, 3, 4], dtype=np.int64)
+    expected = np.vstack((expected_parents, expected_children))
+
+    assert edge_index.dtype == np.int64
+    assert edge_index.shape == (2, 4)  # 2 rows (parent/child), 4 edges
+    assert_array_equal(edge_index, expected)
+
+    # Test for sample_vector_tree (more complex structure)
+    sample_edge_index = sample_vector_tree.parent_to_children_edge_index
+
+    # Expected edges for sample tree:
+    # 0 -> 1, 0 -> 2, 1 -> 3, 1 -> 4, 1 -> 5, 2 -> 6, 2 -> 7
+    expected_sample_parents = np.array([0, 0, 1, 1, 1, 2, 2], dtype=np.int64)
+    expected_sample_children = np.array([1, 2, 3, 4, 5, 6, 7], dtype=np.int64)
+    expected_sample = np.vstack(
+        (expected_sample_parents, expected_sample_children)
+    )
+
+    assert sample_edge_index.dtype == np.int64
+    assert sample_edge_index.shape == (2, 7)  # 2 rows, 7 edges
+    assert_array_equal(sample_edge_index, expected_sample)

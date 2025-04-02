@@ -473,3 +473,13 @@ class VectorTree:
         root to any leaf, measured in branch lengths.
         """
         return float(np.max(self.distance_to_root))
+
+    @cached_property
+    def parent_to_children_edge_index(self) -> NDArray[np.int64]:
+        """Returns the edge index for parent-to-children connections in COO
+        format."""
+        edge_index = []
+        for parent, children in enumerate(self.children_indices):
+            for child in children:
+                edge_index.append([parent, child])
+        return np.array(edge_index, dtype=np.int64).T
