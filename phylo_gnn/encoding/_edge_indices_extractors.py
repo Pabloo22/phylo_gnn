@@ -1,7 +1,12 @@
+from numpy.typing import NDArray
+import numpy as np
+
 from phylo_gnn.encoding import VectorTree, EdgeType, NodeType
 
 
-def get_basic_edge_index(vector_tree: VectorTree):
+def get_basic_edge_index(
+    vector_tree: VectorTree,
+) -> dict[tuple[str, str, str], NDArray[np.int64]]:
     """Returns (node, has_parent, node) and (node, has_child, node) edge
     indices types."""
 
