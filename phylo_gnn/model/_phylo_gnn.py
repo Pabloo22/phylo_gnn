@@ -1,14 +1,19 @@
+from typing import Any
+
 import pytorch_lightning as pl
+from pytorch_lightning.utilities import rank_zero_only
 import torch
 import torch.nn.functional as F
 import wandb
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import ReduceLROnPlateau, CosineAnnealingLR
 from torchmetrics import Accuracy, F1Score, Precision, Recall
-from pytorch_lightning.utilities import rank_zero_only
-from typing import Any
+
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import (  # type: ignore
+    confusion_matrix,
+    ConfusionMatrixDisplay,
+)
 
 from phylo_gnn.model import (
     BaseEncoder,
@@ -16,6 +21,7 @@ from phylo_gnn.model import (
     BaseReadout,
     get_node_features_dict,
     get_edge_attributes_dict,
+    get_edge_indices_dict,
 )
 
 
@@ -138,12 +144,14 @@ class PhyloGNNModule(pl.LightningModule):
         self.train_step_count = 0
 
         # To collect predictions for confusion matrix
-        self.val_preds = []
-        self.val_targets = []
-        self.test_preds = []
-        self.test_targets = []
+        self.val_preds: list[torch.Tensor] = []
+        self.val_targets: list[torch.Tensor] = []
+        self.test_preds: list[torch.Tensor] = []
+        self.test_targets: list[torch.Tensor] = []
 
-    def forward(self, data):
+    def forward(  # pylint: disable=arguments-differ
+        self, hetero_data, *args, **kwargs
+    ):
         """Forward pass through the full GNN model.
 
         Args:
@@ -153,12 +161,9 @@ class PhyloGNNModule(pl.LightningModule):
             Tensor: Class logits
         """
         # Extract features from the HeteroData object
-        node_features_dict = get_node_features_dict(data)
-        edge_attr_dict = get_edge_attributes_dict(data)
-        edge_indices_dict = {
-            edge_type: data[edge_type].edge_index
-            for edge_type in data.edge_types
-        }
+        node_features_dict = get_node_features_dict(hetero_data)
+        edge_attr_dict = get_edge_attributes_dict(hetero_data)
+        edge_indices_dict = get_edge_indices_dict(hetero_data)
 
         # Encode node and edge features
         node_features_dict, edge_attr_dict = self.encoder(
@@ -175,12 +180,12 @@ class PhyloGNNModule(pl.LightningModule):
 
         return logits
 
-    def _shared_step(self, batch, batch_idx, stage: str):
+    def _shared_step(self, batch, unused_batch_idx, stage: str):
         """Shared computation for training, validation, and test steps.
 
         Args:
             batch: Input batch
-            batch_idx: Batch index
+            unused_batch_idx: Batch index
             stage: One of 'train', 'val', or 'test'
 
         Returns:
@@ -241,12 +246,16 @@ class PhyloGNNModule(pl.LightningModule):
             "targets": targets,
         }
 
-    def training_step(self, batch, batch_idx):
+    def training_step(  # pylint: disable=arguments-differ
+        self, batch, batch_idx, *args, **kwargs
+    ):
         """Training step.
 
         Args:
             batch: Input batch
             batch_idx: Batch index
+            *args: Additional arguments
+            **kwargs: Additional keyword arguments
 
         Returns:
             Tensor: Loss value
@@ -297,7 +306,9 @@ class PhyloGNNModule(pl.LightningModule):
 
         return loss
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(  # pylint: disable=arguments-differ
+        self, batch, batch_idx, *args, **kwargs
+    ):
         """Validation step.
 
         Args:
@@ -334,7 +345,9 @@ class PhyloGNNModule(pl.LightningModule):
 
         return result
 
-    def test_step(self, batch, batch_idx):
+    def test_step(  # pylint: disable=arguments-differ
+        self, batch, batch_idx, *args, **kwargs
+    ):
         """Test step.
 
         Args:
@@ -517,7 +530,9 @@ class PhyloGNNModule(pl.LightningModule):
         }
 
     @classmethod
-    def load_from_checkpoint(cls, checkpoint_path, **kwargs):
+    def load_from_checkpoint(  # pylint: disable=arguments-differ
+        cls, checkpoint_path, **kwargs
+    ):
         """Load model from checkpoint with custom handling of model components.
 
         This extends the default load_from_checkpoint to handle our model
