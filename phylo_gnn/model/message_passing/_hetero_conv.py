@@ -63,7 +63,6 @@ class HeteroConvMessagePassing(BaseMessagePassing):
             **kwargs,
         )
 
-        # Process node output dimensions
         if isinstance(node_output_dims, int):
             self.node_output_dims = {
                 node_type: node_output_dims for node_type in node_input_dims
@@ -71,7 +70,6 @@ class HeteroConvMessagePassing(BaseMessagePassing):
         else:
             self.node_output_dims = node_output_dims
 
-        # Process hidden dimensions
         if hidden_dims is None:
             self.hidden_dims = self.node_output_dims
         elif isinstance(hidden_dims, int):
@@ -81,27 +79,20 @@ class HeteroConvMessagePassing(BaseMessagePassing):
         else:
             self.hidden_dims = hidden_dims
 
-        # Default convolution types if not provided
         if conv_types is None:
-            self.conv_types: dict[EdgeType, str] = (
-                {}
-            )  # Will be populated in forward pass
+            self.conv_types: dict[EdgeType, str] = {}
         else:
             self.conv_types = conv_types
 
-        # Store configuration
         self.dropout_p = dropout
         self.aggr = aggr
         self.num_layers = num_layers
         self.kwargs = kwargs
 
-        # Create message passing layers
         self.layers = nn.ModuleList()
         for i in range(num_layers):
-            # Create layer structure
             layer_norms = nn.ModuleDict()
 
-            # Add output normalizations
             out_dims = (
                 self.node_output_dims
                 if i == num_layers - 1
@@ -110,13 +101,10 @@ class HeteroConvMessagePassing(BaseMessagePassing):
             for node_type, dim in out_dims.items():
                 layer_norms[node_type] = nn.LayerNorm(dim)
 
-            # Store in ModuleDict with correct types
-            # Fix: Use dictionary with string keys for nn.ModuleDict
             layer_dict = {"norms": layer_norms}
             layer = nn.ModuleDict(layer_dict)
             self.layers.append(layer)
 
-        # Activation function
         self.activation = nn.ReLU()
         self.dropout = nn.Dropout(dropout)
 
@@ -127,13 +115,11 @@ class HeteroConvMessagePassing(BaseMessagePassing):
         dst_dim: int,
         edge_dim: int | None = None,
     ) -> nn.Module:
-        """Create the appropriate PyG convolution based on conv_type."""
         if conv_type.lower() == "gcn":
             return GCNConv(src_dim, dst_dim)
 
         if conv_type.lower() == "gat":
             heads = self.kwargs.get("heads", 4)
-            # Ensure dst_dim is divisible by heads
             head_dim = dst_dim // heads
             return GATConv(
                 src_dim,
@@ -163,14 +149,11 @@ class HeteroConvMessagePassing(BaseMessagePassing):
         edge_indices_dict: dict[EdgeType, torch.Tensor],
         edge_attributes_dict: dict[EdgeType, torch.Tensor] | None = None,
     ) -> None:
-        """Initialize convolutions for a layer if not already done."""
         layer = self.layers[layer_idx]
 
-        # Skip if already initialized
         if "convs" in layer:  # type: ignore[operator]
             return
 
-        # Determine dimensions for this layer
         in_dims = self.node_input_dims if layer_idx == 0 else self.hidden_dims
         out_dims = (
             self.node_output_dims
@@ -178,35 +161,29 @@ class HeteroConvMessagePassing(BaseMessagePassing):
             else self.hidden_dims
         )
 
-        # Create convs for each edge type
         conv_dict: dict[EdgeType, nn.Module] = {}
         for edge_type in edge_indices_dict:
             src, _, dst = edge_type
 
-            # Skip if source or destination node type is not in our dimensions
             if src not in in_dims or (
                 dst not in out_dims  # type: ignore[operator]
             ):
                 continue
 
-            # Get conv type for this edge (default to GCN)
             conv_type = self.conv_types.get(edge_type, "gcn")
 
-            # Get edge dimension if available
             edge_dim = None
             if edge_attributes_dict and edge_type in edge_attributes_dict:
                 edge_attr = edge_attributes_dict[edge_type]
                 if edge_attr is not None:
                     edge_dim = edge_attr.size(-1)
 
-            # Create appropriate convolution
             src_dim = cast(dict[str, int], in_dims)[src]
             dst_dim = cast(dict[str, int], out_dims)[dst]
 
             conv = self._create_conv(conv_type, src_dim, dst_dim, edge_dim)
             conv_dict[edge_type] = conv
 
-        # Create HeteroConv layer and store in the layer dict
         layer["convs"] = HeteroConv(  # type: ignore[operator]
             conv_dict,
             aggr=self.aggr,
@@ -235,49 +212,38 @@ class HeteroConvMessagePassing(BaseMessagePassing):
             Tuple of (processed node features dict, processed edge attributes
             dict)
         """
-        # If no conv_types provided, use all edge types from edge_indices_dict
         if not self.conv_types:
             self.conv_types = {
                 edge_type: "gcn" for edge_type in edge_indices_dict
             }
 
-        # Initialize all layer convolutions
         for i in range(self.num_layers):
             self._initialize_layer_convs(
                 i, edge_indices_dict, edge_attributes_dict
             )
 
-        # Forward pass through each layer
         x_dict = node_features_dict
 
         for i, layer in enumerate(self.layers):
-            # Apply convolution
-            # Use get() to safely access the 'convs' key
-            convs = layer.get("convs")
-            if convs is None:
-                continue
+            convs = layer["convs"]
 
             x_dict_new = convs(
                 x_dict, edge_indices_dict, edge_attr_dict=edge_attributes_dict
             )
 
-            # Apply normalization, activation, and dropout for each node type
             for node_type in x_dict_new:
-                # Apply normalization if we have it for this node type
                 norms = layer.get("norms", {})
                 if node_type in norms:
                     x_dict_new[node_type] = norms[node_type](
                         x_dict_new[node_type]
                     )
 
-                # Apply activation and dropout (except for last layer)
                 if i < self.num_layers - 1:
                     x_dict_new[node_type] = self.activation(
                         x_dict_new[node_type]
                     )
                     x_dict_new[node_type] = self.dropout(x_dict_new[node_type])
 
-            # Update for next layer
             x_dict = x_dict_new
 
         return x_dict, edge_attributes_dict
