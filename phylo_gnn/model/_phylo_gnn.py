@@ -20,7 +20,7 @@ from phylo_gnn.model import (
     get_edge_attributes_dict,
     get_edge_indices_dict,
 )
-from phylo_gnn.model.encoders import BaseEncoder
+from phylo_gnn.model.feature_encoders import BaseEncoder
 from phylo_gnn.model.readouts import BaseReadout
 from phylo_gnn.model.message_passing import BaseMessagePassing
 

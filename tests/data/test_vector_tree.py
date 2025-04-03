@@ -2,7 +2,7 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
 import pytest
 
-from phylo_gnn.encoding import VectorTree
+from phylo_gnn.feature_extraction import VectorTree
 
 
 def test_initialization_and_num_nodes(vector_tree_levelorder: VectorTree):

@@ -1,7 +1,7 @@
 from numpy.typing import NDArray
 import numpy as np
 
-from phylo_gnn.encoding import VectorTree, EdgeType, NodeType
+from phylo_gnn.feature_extraction import VectorTree, EdgeType, NodeType
 
 
 def get_basic_edge_index(

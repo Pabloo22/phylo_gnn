@@ -3,7 +3,7 @@ from collections import defaultdict
 from numpy.typing import NDArray
 import numpy as np
 
-from phylo_gnn.encoding import VectorTree, EdgeFeatureExtractor
+from phylo_gnn.feature_extraction import VectorTree, EdgeFeatureExtractor
 
 
 def get_distances(

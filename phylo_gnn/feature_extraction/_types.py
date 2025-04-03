@@ -6,7 +6,7 @@ from torch_geometric.data import HeteroData  # type: ignore
 import numpy as np
 from numpy.typing import NDArray
 
-from phylo_gnn.encoding import VectorTree
+from phylo_gnn.feature_extraction import VectorTree
 
 
 EdgeIndices = dict[tuple[str, str, str], NDArray[np.int64]]

@@ -3,7 +3,7 @@ from torch_geometric.data import HeteroData  # type: ignore
 import numpy as np
 from numpy.typing import NDArray
 
-from phylo_gnn.encoding import (
+from phylo_gnn.feature_extraction import (
     VectorTree,
     TargetProcessor,
     NodeFeatureExtractor,

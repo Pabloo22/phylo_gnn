@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.typing import NDArray
-from phylo_gnn.encoding import VectorTree, NodeType
+from phylo_gnn.feature_extraction import VectorTree, NodeType
 
 
 def _initialize_node_features(
