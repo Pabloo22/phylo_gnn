@@ -10,13 +10,13 @@ class BaseReadout(nn.Module):
     def __init__(
         self,
         node_input_dims: dict[NodeType, int],
-        node_output_dims: dict[NodeType, int] | int,
+        edge_input_dims: dict[EdgeType, int] | None = None,
         output_dim: int = 6,
         **kwargs,
     ):
         super().__init__()
         self.node_input_dims = node_input_dims
-        self.node_output_dims = node_output_dims
+        self.edge_input_dims = edge_input_dims
         self.output_dim = output_dim
         self.hparams = kwargs
 
