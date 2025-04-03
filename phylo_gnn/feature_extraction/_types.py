@@ -23,13 +23,13 @@ TargetProcessor = (
 )
 
 
-class NodeType(str, enum.Enum):
+class NodeNames(str, enum.Enum):
     NODE = "node"
     INTERNAL = "internal"
     LEAF = "leaf"
 
 
-class EdgeType(str, enum.Enum):
+class EdgeNames(str, enum.Enum):
     HAS_PARENT = "has_parent"
     HAS_CHILD = "has_child"
     HAS_SIBLING = "has_sibling"

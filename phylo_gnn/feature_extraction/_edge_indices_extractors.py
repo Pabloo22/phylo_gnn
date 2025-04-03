@@ -1,7 +1,7 @@
 from numpy.typing import NDArray
 import numpy as np
 
-from phylo_gnn.feature_extraction import VectorTree, EdgeType, NodeType
+from phylo_gnn.feature_extraction import VectorTree, EdgeNames, NodeNames
 
 
 def get_basic_edge_index(
@@ -12,13 +12,13 @@ def get_basic_edge_index(
 
     return {
         (
-            NodeType.NODE.value,
-            EdgeType.HAS_PARENT.value,
-            NodeType.NODE.value,
+            NodeNames.NODE.value,
+            EdgeNames.HAS_PARENT.value,
+            NodeNames.NODE.value,
         ): vector_tree.children_to_parent_edge_index,
         (
-            NodeType.NODE.value,
-            EdgeType.HAS_CHILD.value,
-            NodeType.NODE.value,
+            NodeNames.NODE.value,
+            EdgeNames.HAS_CHILD.value,
+            NodeNames.NODE.value,
         ): vector_tree.parent_to_children_edge_index,
     }

@@ -5,8 +5,8 @@ from ._types import (
     EdgeIndicesExtractor,
     NodeFeatureExtractor,
     TargetProcessor,
-    NodeType,
-    EdgeType,
+    NodeNames,
+    EdgeNames,
 )
 from ._node_feature_extractors import (
     get_basic_node_features,
@@ -24,7 +24,7 @@ from ._factories import (
 __all__ = [
     "get_encoding_function",
     "VectorTree",
-    "NodeType",
+    "NodeNames",
     "EncodingFunction",
     "NodeFeatureExtractor",
     "EdgeIndicesExtractor",
@@ -33,5 +33,5 @@ __all__ = [
     "get_graph_classification_target",
     "get_basic_node_features",
     "get_basic_edge_index",
-    "EdgeType",
+    "EdgeNames",
 ]

@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.typing import NDArray
-from phylo_gnn.feature_extraction import VectorTree, NodeType
+from phylo_gnn.feature_extraction import VectorTree, NodeNames
 
 
 def _initialize_node_features(
@@ -49,6 +49,6 @@ def divide_into_internal_and_leaf_nodes(
     leaves_indices_mask = np.zeros(vector_tree.num_nodes, dtype=bool)
     leaves_indices_mask[leaves_indices] = True
     return {
-        NodeType.INTERNAL.value: node_features[~leaves_indices_mask],
-        NodeType.LEAF.value: node_features[leaves_indices_mask],
+        NodeNames.INTERNAL.value: node_features[~leaves_indices_mask],
+        NodeNames.LEAF.value: node_features[leaves_indices_mask],
     }
