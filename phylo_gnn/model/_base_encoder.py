@@ -1,4 +1,3 @@
-import abc
 from typing import overload
 import torch
 from torch import nn
@@ -42,7 +41,6 @@ class BaseEncoder(nn.Module):
         dict[tuple[str, str, str], torch.Tensor],
     ]: ...
 
-    @abc.abstractmethod
     def forward(
         self,
         node_features_dict: dict[str, torch.Tensor],
@@ -53,4 +51,6 @@ class BaseEncoder(nn.Module):
         dict[str, torch.Tensor],
         dict[tuple[str, str, str], torch.Tensor] | None,
     ]:
-        pass
+        raise NotImplementedError(
+            "The forward method must be implemented in subclasses."
+        )

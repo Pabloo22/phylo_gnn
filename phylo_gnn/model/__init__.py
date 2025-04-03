@@ -4,7 +4,7 @@ from ._utils import (
     get_edge_attributes_dict,
     get_edge_indices_dict,
 )
-from ._encoders import BaseEncoder
+from ._base_encoder import BaseEncoder
 from ._message_passing import BaseMessagePassing
 from ._readouts import BaseReadout
 
