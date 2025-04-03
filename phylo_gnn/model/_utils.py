@@ -11,7 +11,7 @@ def get_node_features_dict(hetero_data: HeteroData) -> dict[str, torch.Tensor]:
 
 def get_edge_attributes_dict(
     hetero_data: HeteroData, attr_name: str = "edge_attr"
-):
+) -> dict[tuple[str, str, str], torch.Tensor]:
     """Extracts edge attributes from a HeteroData object into a dictionary.
 
     Args:
@@ -25,4 +25,21 @@ def get_edge_attributes_dict(
         edge_type: hetero_data[edge_type][attr_name]
         for edge_type in hetero_data.edge_types
         if attr_name in hetero_data[edge_type]
+    }
+
+
+def get_edge_indices_dict(
+    hetero_data: HeteroData,
+) -> dict[tuple[str, str, str], torch.Tensor]:
+    """Extracts edge indices from a HeteroData object into a dictionary.
+
+    Args:
+        hetero_data: A torch_geometric.data.HeteroData object
+
+    Returns:
+        dict: A dictionary mapping edge types to their index tensors
+    """
+    return {
+        edge_type: hetero_data[edge_type].edge_index
+        for edge_type in hetero_data.edge_types
     }
