@@ -17,6 +17,7 @@ class BaseReadout(nn.Module):
         self.node_input_dims = node_input_dims
         self.node_output_dims = node_output_dims
         self.output_dim = output_dim
+        self.hparams = kwargs
 
     @abc.abstractmethod
     def forward(

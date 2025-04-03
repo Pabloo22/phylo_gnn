@@ -20,6 +20,7 @@ class BaseMessagePassing(nn.Module):
         self.node_output_dims = node_output_dims
         self.edge_input_dims = edge_input_dims
         self.edge_output_dims = edge_output_dims
+        self.hparams = kwargs
 
     @overload
     def forward(
