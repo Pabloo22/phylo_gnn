@@ -41,13 +41,18 @@ class HeteroConvMessagePassing(BaseMessagePassing):
         node_output_dims: dict[str, int] | int,
         edge_input_dims: dict[EdgeType, int] | None = None,
         edge_output_dims: dict[EdgeType, int] | int | None = None,
-        conv_types: dict[EdgeType, str] | None = None,
+        conv_types: dict[EdgeType, str] | str | None = None,
         num_layers: int = 2,
         hidden_dims: dict[str, int] | int | None = None,
         dropout: float = 0.1,
         aggr: str = "sum",
+        conv_kwargs: dict | None = None,
         **kwargs,
     ):
+        if conv_kwargs is None:
+            conv_kwargs = {}
+        conv_kwargs_copy = conv_kwargs.copy()
+        conv_kwargs_copy.pop("nn", None)
         super().__init__(
             node_input_dims=node_input_dims,
             node_output_dims=node_output_dims,
@@ -58,6 +63,7 @@ class HeteroConvMessagePassing(BaseMessagePassing):
             hidden_dims=hidden_dims,
             dropout=dropout,
             aggr=aggr,
+            conv_kwargs=conv_kwargs_copy,
             **kwargs,
         )
 
@@ -79,13 +85,22 @@ class HeteroConvMessagePassing(BaseMessagePassing):
 
         if conv_types is None:
             self.conv_types: dict[EdgeType, str] = {}
+        elif isinstance(conv_types, str):
+            if edge_input_dims is None:
+                raise ValueError(
+                    "edge_input_dims must be provided if conv_types is a "
+                    "string"
+                )
+            self.conv_types = {
+                edge_type: conv_types for edge_type in edge_input_dims
+            }
         else:
             self.conv_types = conv_types
 
         self.dropout_p = dropout
         self.aggr = aggr
         self.num_layers = num_layers
-        self.kwargs = kwargs
+        self.conv_kwargs = conv_kwargs
 
         self.layers = nn.ModuleList()
         for i in range(num_layers):
@@ -114,10 +129,10 @@ class HeteroConvMessagePassing(BaseMessagePassing):
         edge_dim: int | None = None,
     ) -> nn.Module:
         if conv_type.lower() == "gcn":
-            return GCNConv(src_dim, dst_dim)
+            return GCNConv(src_dim, dst_dim, **self.conv_kwargs)
 
         if conv_type.lower() == "gat":
-            heads = self.kwargs.get("heads", 4)
+            heads = self.conv_kwargs.get("heads", 4)
             head_dim = dst_dim // heads
             return GATConv(
                 src_dim,
@@ -129,15 +144,17 @@ class HeteroConvMessagePassing(BaseMessagePassing):
             )
 
         if conv_type.lower() == "sage":
-            return SAGEConv((src_dim, -1), dst_dim)
+            return SAGEConv((src_dim, -1), dst_dim, **self.conv_kwargs)
 
         if conv_type.lower() == "gin":
-            nn_core = nn.Sequential(
-                nn.Linear(src_dim, dst_dim),
-                nn.ReLU(),
-                nn.Linear(dst_dim, dst_dim),
-            )
-            return GINConv(nn_core)
+            nn_core = self.conv_kwargs.get("nn", None)
+            if nn_core is None:
+                nn_core = nn.Sequential(
+                    nn.Linear(src_dim, dst_dim),
+                    nn.ELU(),
+                    nn.Linear(dst_dim, dst_dim),
+                )
+            return GINConv(nn_core, **self.conv_kwargs)
 
         raise ValueError(f"Unknown convolution type: {conv_type}")
 
