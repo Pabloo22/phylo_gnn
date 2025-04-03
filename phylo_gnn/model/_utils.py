@@ -1,5 +1,6 @@
 from typing import Callable, Optional, List
 from torch_geometric.data import HeteroData  # type: ignore
+from torch_geometric.typing import EdgeType  # type: ignore
 import torch
 from torch import nn
 
@@ -24,7 +25,7 @@ def get_node_features_dict(hetero_data: HeteroData) -> dict[str, torch.Tensor]:
 
 def get_edge_attributes_dict(
     hetero_data: HeteroData, attr_name: str = "edge_attr"
-) -> dict[tuple[str, str, str], torch.Tensor]:
+) -> dict[EdgeType, torch.Tensor]:
     """Extracts edge attributes from a HeteroData object into a dictionary.
 
     Args:
@@ -43,7 +44,7 @@ def get_edge_attributes_dict(
 
 def get_edge_indices_dict(
     hetero_data: HeteroData,
-) -> dict[tuple[str, str, str], torch.Tensor]:
+) -> dict[EdgeType, torch.Tensor]:
     """Extracts edge indices from a HeteroData object into a dictionary.
 
     Args:
@@ -58,12 +59,32 @@ def get_edge_indices_dict(
     }
 
 
+def get_batch_dict(
+    hetero_data: HeteroData,
+) -> tuple[dict[str, torch.Tensor], dict[EdgeType, torch.Tensor]]:
+    """Extract batch assignment information from HeteroData object."""
+    batch_dict = {}
+    edge_batch_dict = {}
+
+    # Extract node batch information
+    for node_type in hetero_data.node_types:
+        if hasattr(hetero_data[node_type], "batch"):
+            batch_dict[node_type] = hetero_data[node_type].batch
+
+    # Extract edge batch information
+    for edge_type in hetero_data.edge_types:
+        if hasattr(hetero_data[edge_type], "batch"):
+            edge_batch_dict[edge_type] = hetero_data[edge_type].batch
+
+    return batch_dict, edge_batch_dict
+
+
 def get_mlp(
     input_dim: int,
     output_dim: int,
     hidden_dims: Optional[List[int]] = None,
     dropout: float = 0.1,
-    activation: Callable[[], nn.Module] | str = nn.ReLU,
+    activation: Callable[[], nn.Module] | str = "relu",
     output_activation: Optional[Callable[[], nn.Module]] = None,
 ) -> nn.Sequential:
     """Create a Multi-Layer Perceptron with customizable architecture.
