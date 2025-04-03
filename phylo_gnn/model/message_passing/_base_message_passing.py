@@ -2,6 +2,7 @@ import abc
 from typing import overload
 import torch
 from torch import nn
+from torch_geometric.typing import EdgeType, NodeType  # type: ignore
 
 
 class BaseMessagePassing(nn.Module):
@@ -9,10 +10,10 @@ class BaseMessagePassing(nn.Module):
 
     def __init__(
         self,
-        node_input_dims: dict[str, int],
-        node_output_dims: dict[str, int] | int,
-        edge_input_dims: dict[tuple[str, str, str], int] | None = None,
-        edge_output_dims: dict[tuple[str, str, str], int] | int | None = None,
+        node_input_dims: dict[NodeType, int],
+        node_output_dims: dict[NodeType, int] | int,
+        edge_input_dims: dict[EdgeType, int] | None = None,
+        edge_output_dims: dict[EdgeType, int] | int | None = None,
         **kwargs,
     ):
         super().__init__()
@@ -25,35 +26,35 @@ class BaseMessagePassing(nn.Module):
     @overload
     def forward(
         self,
-        node_features_dict: dict[str, torch.Tensor],
-        edge_indices_dict: dict[tuple[str, str, str], torch.Tensor],
+        node_features_dict: dict[NodeType, torch.Tensor],
+        edge_indices_dict: dict[EdgeType, torch.Tensor],
         edge_attributes_dict: None = None,
     ) -> tuple[
-        dict[str, torch.Tensor],
+        dict[NodeType, torch.Tensor],
         None,
     ]: ...
 
     @overload
     def forward(
         self,
-        node_features_dict: dict[str, torch.Tensor],
-        edge_indices_dict: dict[tuple[str, str, str], torch.Tensor],
-        edge_attributes_dict: dict[tuple[str, str, str], torch.Tensor],
+        node_features_dict: dict[NodeType, torch.Tensor],
+        edge_indices_dict: dict[EdgeType, torch.Tensor],
+        edge_attributes_dict: dict[EdgeType, torch.Tensor],
     ) -> tuple[
-        dict[str, torch.Tensor],
-        dict[tuple[str, str, str], torch.Tensor],
+        dict[NodeType, torch.Tensor],
+        dict[EdgeType, torch.Tensor],
     ]: ...
 
     @abc.abstractmethod
     def forward(
         self,
-        node_features_dict: dict[str, torch.Tensor],
-        edge_indices_dict: dict[tuple[str, str, str], torch.Tensor],
+        node_features_dict: dict[NodeType, torch.Tensor],
+        edge_indices_dict: dict[EdgeType, torch.Tensor],
         edge_attributes_dict: (
-            dict[tuple[str, str, str], torch.Tensor] | None
+            dict[EdgeType, torch.Tensor] | None
         ) = None,
     ) -> tuple[
-        dict[str, torch.Tensor],
-        dict[tuple[str, str, str], torch.Tensor] | None,
+        dict[NodeType, torch.Tensor],
+        dict[EdgeType, torch.Tensor] | None,
     ]:
         pass

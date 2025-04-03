@@ -1,6 +1,7 @@
 import abc
 import torch
 from torch import nn
+from torch_geometric.typing import EdgeType, NodeType  # type: ignore[import]
 
 
 class BaseReadout(nn.Module):
@@ -8,8 +9,8 @@ class BaseReadout(nn.Module):
 
     def __init__(
         self,
-        node_input_dims: dict[str, int],
-        node_output_dims: dict[str, int] | int,
+        node_input_dims: dict[NodeType, int],
+        node_output_dims: dict[NodeType, int] | int,
         output_dim: int = 6,
         **kwargs,
     ):
@@ -22,9 +23,9 @@ class BaseReadout(nn.Module):
     @abc.abstractmethod
     def forward(
         self,
-        node_features_dict: dict[str, torch.Tensor],
+        node_features_dict: dict[NodeType, torch.Tensor],
         edge_attributes_dict: (
-            dict[tuple[str, str, str], torch.Tensor] | None
+            dict[EdgeType, torch.Tensor] | None
         ) = None,
     ) -> torch.Tensor:
         pass
