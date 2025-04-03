@@ -1,5 +1,3 @@
-from typing import cast
-
 import torch
 from torch import nn
 from torch_geometric.nn import (  # type: ignore
@@ -155,8 +153,8 @@ class HeteroConvMessagePassing(BaseMessagePassing):
             return
 
         in_dims = self.node_input_dims if layer_idx == 0 else self.hidden_dims
-        out_dims = (
-            self.node_output_dims
+        out_dims: dict[str, int] = (  # Mypy bug
+            self.node_output_dims  # type: ignore[assignment]
             if layer_idx == self.num_layers - 1
             else self.hidden_dims
         )
@@ -165,9 +163,7 @@ class HeteroConvMessagePassing(BaseMessagePassing):
         for edge_type in edge_indices_dict:
             src, _, dst = edge_type
 
-            if src not in in_dims or (
-                dst not in out_dims  # type: ignore[operator]
-            ):
+            if src not in in_dims or dst not in out_dims:
                 continue
 
             conv_type = self.conv_types.get(edge_type, "gcn")
@@ -178,8 +174,8 @@ class HeteroConvMessagePassing(BaseMessagePassing):
                 if edge_attr is not None:
                     edge_dim = edge_attr.size(-1)
 
-            src_dim = cast(dict[str, int], in_dims)[src]
-            dst_dim = cast(dict[str, int], out_dims)[dst]
+            src_dim = in_dims[src]
+            dst_dim = out_dims[dst]
 
             conv = self._create_conv(conv_type, src_dim, dst_dim, edge_dim)
             conv_dict[edge_type] = conv
