@@ -1,7 +1,7 @@
 import abc
 import torch
 from torch import nn
-from torch_geometric.typing import EdgeType, NodeType  # type: ignore[import]
+from torch_geometric.typing import EdgeType, NodeType  # type: ignore
 
 
 class BaseReadout(nn.Module):
@@ -24,8 +24,8 @@ class BaseReadout(nn.Module):
     def forward(
         self,
         node_features_dict: dict[NodeType, torch.Tensor],
-        edge_attributes_dict: (
-            dict[EdgeType, torch.Tensor] | None
-        ) = None,
+        edge_attributes_dict: dict[EdgeType, torch.Tensor] | None = None,
+        batch_dict: dict[NodeType, torch.Tensor] | None = None,
+        edge_batch_dict: dict[EdgeType, torch.Tensor] | None = None,
     ) -> torch.Tensor:
         pass
