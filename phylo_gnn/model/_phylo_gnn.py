@@ -19,6 +19,7 @@ from phylo_gnn.model import (
     get_node_features_dict,
     get_edge_attributes_dict,
     get_edge_indices_dict,
+    get_batch_dict,
 )
 from phylo_gnn.model.feature_encoders import BaseEncoder
 from phylo_gnn.model.readouts import BaseReadout
@@ -165,6 +166,9 @@ class PhyloGNNModule(pl.LightningModule):
         edge_attr_dict = get_edge_attributes_dict(hetero_data)
         edge_indices_dict = get_edge_indices_dict(hetero_data)
 
+        # Extract batch information
+        batch_dict, edge_batch_dict = get_batch_dict(hetero_data)
+
         # Encode node and edge features
         node_features_dict, edge_attr_dict = self.encoder(
             node_features_dict, edge_attr_dict
@@ -176,7 +180,9 @@ class PhyloGNNModule(pl.LightningModule):
         )
 
         # Readout to get final prediction
-        logits = self.readout(node_features_dict, edge_attr_dict)
+        logits = self.readout(
+            node_features_dict, edge_attr_dict, batch_dict, edge_batch_dict
+        )
 
         return logits
 
