@@ -5,7 +5,7 @@ from ._utils import (
     get_edge_indices_dict,
 )
 from ._base_encoder import BaseEncoder
-from ._message_passing import BaseMessagePassing
+from ._base_message_passing import BaseMessagePassing
 from ._readouts import BaseReadout
 
 __all__ = [
