@@ -13,6 +13,7 @@ class BaseMessagePassing(nn.Module):
         node_output_dims: dict[str, int] | int,
         edge_input_dims: dict[tuple[str, str, str], int] | None = None,
         edge_output_dims: dict[tuple[str, str, str], int] | int | None = None,
+        **kwargs,
     ):
         super().__init__()
         self.node_input_dims = node_input_dims
