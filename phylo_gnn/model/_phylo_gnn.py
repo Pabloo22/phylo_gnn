@@ -16,13 +16,13 @@ from sklearn.metrics import (  # type: ignore
 )
 
 from phylo_gnn.model import (
-    BaseEncoder,
-    BaseMessagePassing,
-    BaseReadout,
     get_node_features_dict,
     get_edge_attributes_dict,
     get_edge_indices_dict,
 )
+from phylo_gnn.model.encoders import BaseEncoder
+from phylo_gnn.model.readouts import BaseReadout
+from phylo_gnn.model.message_passing import BaseMessagePassing
 
 
 class PhyloGNNModule(pl.LightningModule):
