@@ -2,7 +2,7 @@ import abc
 from typing import overload
 import torch
 from torch import nn
-from torch_geometric.typing import EdgeType, NodeType  # type: ignore
+from torch_geometric.typing import EdgeType  # type: ignore
 
 
 class BaseMessagePassing(nn.Module):
@@ -10,8 +10,8 @@ class BaseMessagePassing(nn.Module):
 
     def __init__(
         self,
-        node_input_dims: dict[NodeType, int],
-        node_output_dims: dict[NodeType, int] | int,
+        node_input_dims: dict[str, int],
+        node_output_dims: dict[str, int] | int,
         edge_input_dims: dict[EdgeType, int] | None = None,
         edge_output_dims: dict[EdgeType, int] | int | None = None,
         **kwargs,
@@ -26,35 +26,35 @@ class BaseMessagePassing(nn.Module):
     @overload
     def forward(
         self,
-        node_features_dict: dict[NodeType, torch.Tensor],
+        node_features_dict: dict[str, torch.Tensor],
         edge_indices_dict: dict[EdgeType, torch.Tensor],
         edge_attributes_dict: None = None,
     ) -> tuple[
-        dict[NodeType, torch.Tensor],
+        dict[str, torch.Tensor],
         None,
     ]: ...
 
     @overload
     def forward(
         self,
-        node_features_dict: dict[NodeType, torch.Tensor],
+        node_features_dict: dict[str, torch.Tensor],
         edge_indices_dict: dict[EdgeType, torch.Tensor],
         edge_attributes_dict: dict[EdgeType, torch.Tensor],
     ) -> tuple[
-        dict[NodeType, torch.Tensor],
+        dict[str, torch.Tensor],
         dict[EdgeType, torch.Tensor],
     ]: ...
 
     @abc.abstractmethod
     def forward(
         self,
-        node_features_dict: dict[NodeType, torch.Tensor],
+        node_features_dict: dict[str, torch.Tensor],
         edge_indices_dict: dict[EdgeType, torch.Tensor],
         edge_attributes_dict: (
             dict[EdgeType, torch.Tensor] | None
         ) = None,
     ) -> tuple[
-        dict[NodeType, torch.Tensor],
+        dict[str, torch.Tensor],
         dict[EdgeType, torch.Tensor] | None,
     ]:
         pass
