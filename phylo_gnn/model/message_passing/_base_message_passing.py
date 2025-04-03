@@ -21,7 +21,9 @@ class BaseMessagePassing(nn.Module):
         self.node_output_dims = node_output_dims
         self.edge_input_dims = edge_input_dims
         self.edge_output_dims = edge_output_dims
-        self.hparams = kwargs
+        kwargs_copy = kwargs.copy()
+        kwargs_copy.pop("nn", None)
+        self.hparams = kwargs_copy
 
     @overload
     def forward(
