@@ -14,6 +14,11 @@ from ._node_feature_extractors import (
 from ._edge_indices_extractors import (
     get_basic_edge_index,
 )
+from ._edge_attributes_extractors import (
+    get_distances,
+    get_topological_distances,
+    get_composite_edge_feature_extractor,
+)
 from ._target_processors import (
     get_graph_classification_target,
 )
@@ -34,4 +39,7 @@ __all__ = [
     "get_basic_node_features",
     "get_basic_edge_index",
     "EdgeNames",
+    "get_distances",
+    "get_topological_distances",
+    "get_composite_edge_feature_extractor",
 ]

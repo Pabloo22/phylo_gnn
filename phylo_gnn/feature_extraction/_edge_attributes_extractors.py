@@ -36,7 +36,7 @@ def get_topological_distances(
     return result
 
 
-def composite_edge_feature_extractor(
+def get_composite_edge_feature_extractor(
     extractors: Iterable[EdgeFeatureExtractor],
 ) -> EdgeFeatureExtractor:
     """Concatenates the edge features from the extractors."""
