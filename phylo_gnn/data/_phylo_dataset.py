@@ -84,10 +84,11 @@ class CSVMetadata:
 
 
 class PhyloCSVDataset(InMemoryDataset):
+
     def __init__(
         self,
         root: str,
-        process_func: Callable[[str, NDArray], HeteroData],
+        process_function: Callable[[str, NDArray], HeteroData],
         csv_metadata: CSVMetadata,
         transform: Callable | None = None,
         pre_transform: Callable | None = None,
@@ -95,12 +96,12 @@ class PhyloCSVDataset(InMemoryDataset):
         log: bool = True,
         force_reload: bool = False,
     ):
-        if not callable(process_func):
-            raise ValueError("`process_func` must be a callable function.")
+        if not callable(process_function):
+            raise ValueError("`process_function` must be a callable function.")
 
         # Check that
         self.csv_metadata = csv_metadata
-        self.process_func = process_func
+        self.process_func = process_function
         self._processed_paths_abs_cache: list[str] = []
         self.df = self.csv_metadata.get_combined_dataframe()
         super().__init__(
