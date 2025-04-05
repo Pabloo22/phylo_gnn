@@ -24,6 +24,7 @@ TargetProcessor = (
     | Callable[[NDArray], dict[EdgeType, torch.Tensor]]
 )
 NormalizationFunction = Callable[[NDArray, VectorTree], NDArray[np.float32]]
+EdgeIndexExtractor = Callable[[VectorTree], NDArray[np.int64]]
 
 
 class NodeNames(str, enum.Enum):
