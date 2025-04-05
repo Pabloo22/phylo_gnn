@@ -8,7 +8,7 @@ from phylo_gnn.data.feature_extraction import (
     TargetProcessor,
     NodeFeatureExtractor,
     get_graph_classification_target,
-    EdgeFeatureExtractor,
+    EdgeFeaturesExtractor,
     EdgeIndicesExtractor,
     EncodingFunction,
 )
@@ -18,7 +18,7 @@ def get_encoding_function(
     node_feature_extractor: NodeFeatureExtractor,
     edge_indices_extractor: EdgeIndicesExtractor | None = None,
     target_processor: TargetProcessor = get_graph_classification_target,
-    edge_attribute_extractor: EdgeFeatureExtractor | None = None,
+    edge_attribute_extractor: EdgeFeaturesExtractor | None = None,
 ) -> EncodingFunction:
 
     def encoding_function(newick: str, target_row: NDArray) -> HeteroData:

@@ -15,7 +15,7 @@ EdgeIndices = dict[EdgeType, NDArray[np.int64]]
 EncodingFunction = Callable[[str, NDArray], HeteroData]
 NodeFeatureExtractor = Callable[[VectorTree], dict[str, NDArray[np.float32]]]
 EdgeIndicesExtractor = Callable[[VectorTree], EdgeIndices]
-EdgeFeatureExtractor = Callable[
+EdgeFeaturesExtractor = Callable[
     [VectorTree, EdgeIndices], dict[EdgeType, NDArray[np.float32]]
 ]
 TargetProcessor = (
@@ -25,6 +25,9 @@ TargetProcessor = (
 )
 NormalizationFunction = Callable[[NDArray, VectorTree], NDArray[np.float32]]
 EdgeIndexExtractor = Callable[[VectorTree], NDArray[np.int64]]
+EdgeFeatureExtractor = Callable[
+    [VectorTree, NDArray[np.int64]], NDArray[np.float32]
+]
 
 
 class NodeNames(str, enum.Enum):
