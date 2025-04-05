@@ -1,7 +1,7 @@
 from ._vector_tree import VectorTree
 from ._types import (
     EncodingFunction,
-    EdgeFeatureExtractor,
+    EdgeFeaturesExtractor,
     EdgeIndicesExtractor,
     NodeFeatureExtractor,
     TargetProcessor,
@@ -10,6 +10,7 @@ from ._types import (
     FeaturePipeline,
     NormalizationFunction,
     EdgeIndexExtractor,
+    EdgeFeatureExtractor,
 )
 from ._normalization_functions import (
     NORMALIZATION_FUNCTIONS_MAPPING,
@@ -21,7 +22,8 @@ from ._edge_indices import (
 from ._edge_attributes import (
     get_distances,
     get_topological_distances,
-    get_composite_edge_feature_extractor,
+    EDGE_FEATURE_EXTRACTORS_MAPPING,
+    get_edge_feature_extractor,
 )
 from ._target_processors import (
     get_graph_classification_target,
@@ -37,17 +39,19 @@ __all__ = [
     "EncodingFunction",
     "NodeFeatureExtractor",
     "EdgeIndicesExtractor",
-    "EdgeFeatureExtractor",
+    "EdgeFeaturesExtractor",
     "TargetProcessor",
     "get_graph_classification_target",
     "EdgeNames",
     "get_distances",
     "get_topological_distances",
-    "get_composite_edge_feature_extractor",
+    "EDGE_FEATURE_EXTRACTORS_MAPPING",
+    "get_edge_feature_extractor",
     "NormalizationFunction",
     "FeaturePipeline",
     "NORMALIZATION_FUNCTIONS_MAPPING",
     "EdgeIndexExtractor",
     "EDGE_INDEX_EXTRACTORS_MAPPING",
     "get_edge_indices_extractor",
+    "EdgeFeatureExtractor",
 ]
