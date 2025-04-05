@@ -6,7 +6,7 @@ from ._utils import (
     get_mlp,
 )
 
-from ._phylo_gnn import PhyloGNNModule
+from ._phylo_gnn_classifier import PhyloGNNClassifier
 
 __all__ = [
     "get_node_features_dict",
@@ -14,5 +14,5 @@ __all__ = [
     "get_edge_indices_dict",
     "get_batch_dict",
     "get_mlp",
-    "PhyloGNNModule",
+    "PhyloGNNClassifier",
 ]

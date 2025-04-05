@@ -26,7 +26,7 @@ from phylo_gnn.model.readouts import BaseReadout
 from phylo_gnn.model.message_passing import BaseMessagePassing
 
 
-class PhyloGNNModule(pl.LightningModule):
+class PhyloGNNClassifier(pl.LightningModule):
     """PyTorch Lightning module for Phylogenetic GNN classification.
 
     Args:
