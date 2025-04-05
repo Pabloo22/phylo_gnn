@@ -14,10 +14,8 @@ from ._types import (
 from ._normalization_functions import (
     NORMALIZATION_FUNCTIONS_MAPPING,
 )
-from ._edge_index_extractors import (
+from ._edge_indices import (
     EDGE_INDEX_EXTRACTORS_MAPPING,
-)
-from ._get_indices_extractor import (
     get_edge_indices_extractor,
 )
 from ._edge_attributes import (
