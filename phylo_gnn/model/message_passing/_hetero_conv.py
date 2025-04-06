@@ -3,7 +3,7 @@ from torch import nn
 from torch_geometric.nn import (  # type: ignore
     HeteroConv,
     GCNConv,
-    GATConv,
+    GATv2Conv,
     SAGEConv,
     GINConv,
 )
@@ -137,7 +137,7 @@ class HeteroConvMessagePassing(BaseMessagePassing):
         if conv_type.lower() == "gat":
             heads = self.conv_kwargs.get("heads", 4)
             head_dim = dst_dim // heads
-            return GATConv(
+            return GATv2Conv(
                 src_dim,
                 head_dim,
                 heads=heads,
@@ -186,7 +186,7 @@ class HeteroConvMessagePassing(BaseMessagePassing):
             if src not in in_dims or dst not in out_dims:
                 continue
 
-            conv_type = self.conv_types.get(edge_type, "gcn")
+            conv_type = self.conv_types.get(edge_type, "gat")
 
             edge_dim = None
             if edge_attributes_dict and edge_type in edge_attributes_dict:
@@ -230,7 +230,7 @@ class HeteroConvMessagePassing(BaseMessagePassing):
         """
         if not self.conv_types:
             self.conv_types = {
-                edge_type: "gcn" for edge_type in edge_indices_dict
+                edge_type: "gat" for edge_type in edge_indices_dict
             }
 
         for i in range(self.num_layers):
