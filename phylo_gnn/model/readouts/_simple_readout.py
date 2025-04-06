@@ -26,6 +26,13 @@ class SimpleReadout(BaseReadout):
         activation: str = "relu",
         **kwargs,
     ):
+        mlp_input_dim = sum(node_input_dims.values())
+        if edge_input_dims is not None:
+            mlp_input_dim += sum(edge_input_dims.values())
+        if hidden_dims is None:
+            hidden_dims = self._default_hidden_dims(
+                input_dim=mlp_input_dim, output_dim=output_dim
+            )
         super().__init__(
             node_input_dims=node_input_dims,
             edge_input_dims=edge_input_dims,
@@ -46,10 +53,6 @@ class SimpleReadout(BaseReadout):
 
         self.aggregator = aggregator
 
-        mlp_input_dim = sum(node_input_dims.values())
-        if edge_input_dims is not None:
-            mlp_input_dim += sum(edge_input_dims.values())
-
         if aggregator == "all":
             mlp_input_dim *= 3
 
@@ -60,6 +63,16 @@ class SimpleReadout(BaseReadout):
             dropout=dropout,
             activation=activation,
         )
+
+    def _default_hidden_dims(
+        self, input_dim: int, output_dim: int = 6
+    ) -> list[int]:
+        hidden_dims = []
+        current_dim = input_dim // 2
+        while current_dim > output_dim:
+            hidden_dims.append(current_dim)
+            current_dim //= 2
+        return hidden_dims
 
     @staticmethod
     def _aggregate_and_concat_all(
