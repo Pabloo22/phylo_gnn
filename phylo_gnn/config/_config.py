@@ -1,15 +1,26 @@
+from collections.abc import Mapping
 from typing import Any
 from dataclasses import dataclass, field
+import pathlib
+
+from torch_geometric.typing import EdgeType  # type: ignore
 
 from phylo_gnn.model.feature_encoders import BaseEncoder, HeteroPeriodicEncoder
 from phylo_gnn.model.message_passing import (
     BaseMessagePassing,
-    HeteroConv,
+    HeteroConvMessagePassing,
 )
+from phylo_gnn.model import PhyloGNNClassifier
 from phylo_gnn.model.readouts import BaseReadout, SimpleReadout
 from phylo_gnn.config import default_node_features, default_edge_attributes
+from phylo_gnn.data import PhyloCSVDataset, CSVMetadata
 from phylo_gnn.data.feature_extraction import (
     FeaturePipeline,
+    ProcessFunction,
+    get_process_function,
+    get_edge_feature_extractor,
+    get_edge_indices_extractor,
+    get_node_feature_extractor,
 )
 from phylo_gnn import get_project_path
 
@@ -28,18 +39,18 @@ class TrainingConfig:
 
 @dataclass
 class ProcessFunctionConfig:
-    node_features: dict[str, list[FeaturePipeline]] = field(
+    node_features: Mapping[str, list[FeaturePipeline]] = field(
         default_factory=default_node_features
     )
-    edge_types: list[tuple[str, str, str]] = field(
+    edge_types: list[EdgeType] = field(
         default_factory=lambda: [
             ("node", "has_parent", "node"),
             ("node", "has_child", "node"),
         ]
     )
-    edge_attributes: (
-        dict[tuple[str, str, str], list[FeaturePipeline]] | None
-    ) = field(default_factory=default_edge_attributes)
+    edge_attributes: Mapping[EdgeType, list[FeaturePipeline]] | None = field(
+        default_factory=default_edge_attributes
+    )
 
     def node_features_dims(self) -> dict[str, int]:
         return {
@@ -47,7 +58,7 @@ class ProcessFunctionConfig:
             for node_type, pipelines in self.node_features.items()
         }
 
-    def edge_attributes_dims(self) -> dict[tuple[str, str, str], int] | None:
+    def edge_attributes_dims(self) -> dict[EdgeType, int] | None:
         if self.edge_attributes is None:
             return None
         return {
@@ -55,10 +66,25 @@ class ProcessFunctionConfig:
             for edge_type, pipelines in self.edge_attributes.items()
         }
 
+    def initialize(self) -> ProcessFunction:
+        node_feature_extractor = get_node_feature_extractor(self.node_features)
+        edge_indices_extractor = get_edge_indices_extractor(self.edge_types)
+        edge_attribute_extractor = (
+            get_edge_feature_extractor(self.edge_attributes)
+            if self.edge_attributes is not None
+            else None
+        )
+
+        return get_process_function(
+            node_feature_extractor=node_feature_extractor,
+            edge_indices_extractor=edge_indices_extractor,
+            edge_attribute_extractor=edge_attribute_extractor,
+        )
+
 
 @dataclass
 class CSVMetadataConfig:
-    dataset_dir: str = str(get_project_path() / "data")
+    dataset_dir: str | pathlib.Path = get_project_path() / "data"
     dataset_name: str = "classification_dataset"
     column_names: list[str] = field(default_factory=lambda: ["nwk", "label"])
     label_names: list[str] | None = None
@@ -66,23 +92,43 @@ class CSVMetadataConfig:
     detect_csv_files_pattern: str = "*.csv"
     read_csv_kwargs: dict[str, Any] | None = None
 
+    def initialize(self) -> CSVMetadata:
+        return CSVMetadata(
+            dataset_dir=pathlib.Path(self.dataset_dir),
+            dataset_name=self.dataset_name,
+            column_names=self.column_names,
+            label_names=self.label_names,
+            csv_filenames=self.csv_filenames,
+            detect_csv_files_pattern=self.detect_csv_files_pattern,
+            read_csv_kwargs=self.read_csv_kwargs,
+        )
+
 
 @dataclass
 class FeatureEncoderConfig:
     cls: type[BaseEncoder] = HeteroPeriodicEncoder
     parameters: dict[str, Any] = field(default_factory=dict)
 
+    def initialize(self, **kwargs: Any) -> BaseEncoder:
+        return self.cls(**{**self.parameters, **kwargs})
+
 
 @dataclass
 class MessagePassingConfig:
-    cls: type[BaseMessagePassing] = HeteroConv
+    cls: type[BaseMessagePassing] = HeteroConvMessagePassing
     parameters: dict[str, Any] = field(default_factory=dict)
+
+    def initialize(self, **kwargs: Any) -> BaseMessagePassing:
+        return self.cls(**{**self.parameters, **kwargs})
 
 
 @dataclass
 class ReadoutConfig:
     cls: type[BaseReadout] = SimpleReadout
     parameters: dict[str, Any] = field(default_factory=dict)
+
+    def initialize(self, **kwargs: Any) -> BaseReadout:
+        return self.cls(**{**self.parameters, **kwargs})
 
 
 @dataclass
@@ -96,26 +142,132 @@ class PhyloGNNClassifierConfig:
     scheduler_params: dict[str, Any] = field(default_factory=dict)
     eval_interval_steps: int | None = None
 
+    def initialize(self) -> PhyloGNNClassifier:
+        return PhyloGNNClassifier(
+            encoder=self.encoder.initialize(),
+            message_passing=self.message_passing.initialize(),
+            readout=self.readout.initialize(),
+            learning_rate=self.learning_rate,
+            weight_decay=self.weight_decay,
+            scheduler=self.scheduler,
+            scheduler_params=self.scheduler_params,
+            eval_interval_steps=self.eval_interval_steps,
+        )
+
 
 @dataclass
 class PhyloCSVDatasetConfig:
-    encoding_function_config: ProcessFunctionConfig
+    process_function_config: ProcessFunctionConfig = field(
+        default_factory=ProcessFunctionConfig
+    )
     root: str = str(get_project_path() / "data")
     csv_metadata_config: CSVMetadataConfig = field(
         default_factory=CSVMetadataConfig
     )
+    force_reload: bool = False
+    kwargs: dict[str, Any] = field(default_factory=dict)
+
+    def initialize(self) -> PhyloCSVDataset:
+        csv_metadata = self.csv_metadata_config.initialize()
+        return PhyloCSVDataset(
+            root=self.root,
+            csv_metadata=csv_metadata,
+            process_function=self.process_function_config.initialize(),
+            force_reload=self.force_reload,
+            **self.kwargs,
+        )
 
 
 @dataclass
 class Config:
-    dataset: PhyloCSVDatasetConfig
     model: PhyloGNNClassifierConfig
+    dataset: PhyloCSVDatasetConfig = field(
+        default_factory=PhyloCSVDatasetConfig
+    )
     training_config: TrainingConfig = field(default_factory=TrainingConfig)
 
     def __post_init__(self):
-        self.model.encoder.parameters["node_input_dims"] = (
-            self.dataset.encoding_function_config.node_features_dims()
+        # Set encoder input dimensions from dataset
+        node_input_dims = (
+            self.dataset.process_function_config.node_features_dims()
         )
-        self.model.encoder.parameters["edge_input_dims"] = (
-            self.dataset.encoding_function_config.edge_attributes_dims()
+        edge_input_dims = (
+            self.dataset.process_function_config.edge_attributes_dims()
         )
+
+        self.model.encoder.parameters["node_input_dims"] = node_input_dims
+        self.model.encoder.parameters["edge_input_dims"] = edge_input_dims
+
+        # Get encoder output dimensions and ensure they're dictionaries
+        node_output_dims = self.model.encoder.parameters.get(
+            "node_output_dims"
+        )
+        edge_output_dims = self.model.encoder.parameters.get(
+            "edge_output_dims"
+        )
+
+        # Convert integer output dims to dictionaries if needed
+        if isinstance(node_output_dims, int):
+            node_output_dims = {
+                node_type: node_output_dims
+                for node_type in node_input_dims.keys()
+            }
+            self.model.encoder.parameters["node_output_dims"] = (
+                node_output_dims
+            )
+
+        if edge_input_dims is not None and isinstance(edge_output_dims, int):
+            edge_output_dims = {
+                edge_type: edge_output_dims
+                for edge_type in edge_input_dims.keys()
+            }
+            self.model.encoder.parameters["edge_output_dims"] = (
+                edge_output_dims
+            )
+
+        # Set message passing input dimensions from encoder output
+        self.model.message_passing.parameters["node_input_dims"] = (
+            node_output_dims
+        )
+        self.model.message_passing.parameters["edge_input_dims"] = (
+            edge_output_dims
+        )
+
+        # Get message passing output dimensions and ensure they're dictionaries
+        mp_node_output_dims = self.model.message_passing.parameters.get(
+            "node_output_dims"
+        )
+        mp_edge_output_dims = self.model.message_passing.parameters.get(
+            "edge_output_dims"
+        )
+
+        # Convert integer output dims to dictionaries if needed
+        if isinstance(mp_node_output_dims, int):
+            mp_node_output_dims = {
+                node_type: mp_node_output_dims
+                for node_type in node_output_dims.keys()
+            }
+            self.model.message_passing.parameters["node_output_dims"] = (
+                mp_node_output_dims
+            )
+
+        if edge_output_dims is not None and isinstance(
+            mp_edge_output_dims, int
+        ):
+            mp_edge_output_dims = {
+                edge_type: mp_edge_output_dims
+                for edge_type in edge_output_dims.keys()
+            }
+            self.model.message_passing.parameters["edge_output_dims"] = (
+                mp_edge_output_dims
+            )
+
+        # Set readout input dimensions from message passing output
+        self.model.readout.parameters["node_input_dims"] = mp_node_output_dims
+        self.model.readout.parameters["edge_input_dims"] = mp_edge_output_dims
+
+    def initialize_model(self) -> PhyloGNNClassifier:
+        return self.model.initialize()
+
+    def initialize_dataset(self) -> PhyloCSVDataset:
+        return self.dataset.initialize()
