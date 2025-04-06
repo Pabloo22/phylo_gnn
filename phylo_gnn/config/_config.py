@@ -108,7 +108,7 @@ class CSVMetadataConfig:
 class FeatureEncoderConfig:
     cls: type[BaseEncoder] = HeteroPeriodicEncoder
     node_output_dims: int | dict[str, int] = 32
-    edge_output_dims: int | dict[EdgeType, int] | None = None
+    edge_output_dims: int | dict[EdgeType, int] | None = 8
     parameters: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -144,7 +144,7 @@ class FeatureEncoderConfig:
 class MessagePassingConfig:
     cls: type[BaseMessagePassing] = HeteroConvMessagePassing
     node_output_dims: int | dict[str, int] = 32
-    edge_output_dims: int | dict[EdgeType, int] | None = None
+    edge_output_dims: int | dict[EdgeType, int] | None = 8
     parameters: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -187,9 +187,11 @@ class ReadoutConfig:
 
 @dataclass
 class PhyloGNNClassifierConfig:
-    encoder: FeatureEncoderConfig
-    message_passing: MessagePassingConfig
-    readout: ReadoutConfig
+    encoder: FeatureEncoderConfig = field(default_factory=FeatureEncoderConfig)
+    message_passing: MessagePassingConfig = field(
+        default_factory=MessagePassingConfig
+    )
+    readout: ReadoutConfig = field(default_factory=ReadoutConfig)
     learning_rate: float = 1e-3
     weight_decay: float = 1e-4
     scheduler: str | None = "cosine"
@@ -234,7 +236,9 @@ class PhyloCSVDatasetConfig:
 
 @dataclass
 class Config:
-    model: PhyloGNNClassifierConfig
+    model: PhyloGNNClassifierConfig = field(
+        default_factory=PhyloGNNClassifierConfig
+    )
     dataset: PhyloCSVDatasetConfig = field(
         default_factory=PhyloCSVDatasetConfig
     )
