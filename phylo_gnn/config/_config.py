@@ -84,7 +84,7 @@ class ProcessFunctionConfig:
 
 @dataclass
 class CSVMetadataConfig:
-    dataset_dir: str | pathlib.Path = get_project_path() / "data"
+    dataset_dir: str | pathlib.Path = get_project_path() / "data" / "raw"
     processed_filename: str = "classification_dataset"
     column_names: list[str] = field(default_factory=lambda: ["nwk", "label"])
     label_names: list[str] | None = None
