@@ -7,7 +7,7 @@
 *.pkl
 *.pt
 .vscode/
-
+wandb/
 **/.ipynb_checkpoints/
 **/__pycache__/
 lightning_logs/*
