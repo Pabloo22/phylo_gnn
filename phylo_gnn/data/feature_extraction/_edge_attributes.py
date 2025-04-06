@@ -84,6 +84,9 @@ def get_edge_feature_extractor(
                     feature_array = NORMALIZATION_FUNCTIONS_MAPPING[
                         pipeline.normalization_fn_name
                     ](feature_array, vector_tree)
+                # Ensure feature_array is 2D before appending
+                if feature_array.ndim == 1:
+                    feature_array = feature_array.reshape(-1, 1)
                 arrays.append(feature_array)
             edge_features_dict[edge_type] = np.concatenate(arrays, axis=1)
         return edge_features_dict

@@ -49,6 +49,9 @@ def get_node_feature_extractor(
                     feature_array = NORMALIZATION_FUNCTIONS_MAPPING[
                         pipeline.normalization_fn_name
                     ](feature_array, vector_tree)
+                # Ensure feature_array is 2D before appending
+                if feature_array.ndim == 1:
+                    feature_array = feature_array.reshape(-1, 1)
                 arrays.append(feature_array)
             node_features_dict[node_type] = np.concatenate(arrays, axis=1)
         return node_features_dict
@@ -59,6 +62,9 @@ def get_node_feature_extractor(
 def get_node_feature_array(
     vector_tree: VectorTree, feature_name: str
 ) -> NDArray[np.float32]:
+    if feature_name == "position_in_level":
+        return np.array(vector_tree.set_positions_in_level(), dtype=np.float32)
+    return getattr(vector_tree, feature_name)
     if feature_name == "position_in_level":
         return np.astype(vector_tree.set_positions_in_level(), np.float32)
     return getattr(vector_tree, feature_name)
