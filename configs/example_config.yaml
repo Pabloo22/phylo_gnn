@@ -1,0 +1,45 @@
+project_name: "phylo_gnn"
+run_name: "example_run"
+dataset:
+  name: "data.PhyloCSVDataset"
+  parameters:  # root is PROJECT_PATH / "data" (set in the .env file)
+    process_function:
+      name: "feature_extraction.get_encoding_function"
+      parameters:
+        node_feature_extractor:
+          name: "feature_extraction.get_node_feature_extractor"
+          parameters:
+            feature_pipelines:
+              - node:
+                - feature_name: "branch_lengths"
+                  normalization_fn_name: "log1p"
+                - feature_name: "distance_to_root"
+                  normalization_fn_name: "log1p"
+                - feature_name: "distance_to_leaves"
+                  normalization_fn_name: "log1p"
+                - feature_name: "topological_distance_to_leaves"
+                  normalization_fn_name: "div_by_max_level"
+                - feature_name: "topological_distance_to_root"
+                  normalization_fn_name: "div_by_max_level"
+                - feature_name: "level"
+                  normalization_fn_name: "div_by_max_level"
+                - feature_name: "position_in_level"
+                  normalization_fn_name: "div_by_num_nodes_in_level"
+            edge_indices_extractor:
+              name: "feature_extraction.get_edge_indices_extractor"
+              parameters:
+                edge_type: "has_parent"
+                node_type: "node"
+model:
+  name: "model.PhyloGNNModule"
+  parameters:
+    encoder:
+      name: "model.feature_encoders.HeteroPeriodicEncoder"
+      parameters:  # node_input_dims and edge_input_dims are inferred
+        node_output_dims:
+          node: 128  # Output dimension for each node type
+          # node_type2: 64  # Example for another node type
+        # edge_output_dims:
+        #   "('node', 'has_parent', 'node')": 64  # Output dimension for each edge type
+        #   "('node', 'has_child', 'node')": 64  # Example for another edge type
+        edge_output_dims: 64  # If you want to set a common edge output dimension for all edge types
