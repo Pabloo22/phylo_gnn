@@ -20,7 +20,7 @@ class SimpleReadout(BaseReadout):
         node_input_dims: dict[NodeType, int],
         edge_input_dims: dict[EdgeType, int] | None = None,
         output_dim: int = 6,
-        aggregator: str = "sum",
+        aggregator: str = "all",
         hidden_dims: list[int] | None = None,
         dropout: float = 0.1,
         activation: str = "relu",
@@ -50,6 +50,9 @@ class SimpleReadout(BaseReadout):
         if edge_input_dims is not None:
             mlp_input_dim += sum(edge_input_dims.values())
 
+        if aggregator == "all":
+            mlp_input_dim *= 3
+
         self.mlp = get_mlp(
             input_dim=mlp_input_dim,
             output_dim=output_dim,
@@ -58,12 +61,23 @@ class SimpleReadout(BaseReadout):
             activation=activation,
         )
 
+    @staticmethod
+    def _aggregate_and_concat_all(
+        x: torch.Tensor, batch: torch.Tensor | None, size: int | None = None
+    ) -> torch.Tensor:
+        """Check if all aggregators are used and concatenated."""
+        sum_agg = global_add_pool(x, batch, size)
+        mean_agg = global_mean_pool(x, batch, size)
+        max_agg = global_max_pool(x, batch, size)
+        return torch.cat([sum_agg, mean_agg, max_agg], dim=1)
+
     def _get_pooling_function(self):
         """Get the appropriate PyG pooling function based on aggregator."""
         pooling_functions = {
             "sum": global_add_pool,
             "max": global_max_pool,
             "mean": global_mean_pool,
+            "all": self._aggregate_and_concat_all,
         }
         if self.aggregator not in pooling_functions:
             raise ValueError(f"Unsupported aggregator: {self.aggregator}")
