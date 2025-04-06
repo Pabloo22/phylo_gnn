@@ -14,7 +14,6 @@ pandas = "^2.2.3"
 types-tqdm = "^4.67.0.20250319"
 pandas-stubs = "^2.2.3.250308"
 ete3 = "^3.1.3"
-lightning = "^2.5.1"
 wandb = "^0.19.9"
 
 
