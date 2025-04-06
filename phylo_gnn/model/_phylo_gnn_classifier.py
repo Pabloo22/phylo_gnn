@@ -52,10 +52,6 @@ class PhyloGNNClassifier(pl.LightningModule):
             Number of steps between evaluations (None forepoch-only eval)
         log_confusion_matrix:
             Whether to log confusion matrices during validation/testing
-        wandb_project:
-            Name of the wandb project for logging
-        wandb_entity:
-            Name of the wandb entity for logging
     """
 
     def __init__(
@@ -71,8 +67,6 @@ class PhyloGNNClassifier(pl.LightningModule):
         scheduler_params: dict[str, Any] | None = None,
         eval_interval_steps: int | None = None,
         log_confusion_matrix: bool = True,
-        wandb_project: str = "phylo-gnn",
-        wandb_entity: str | None = None,
     ):
         super().__init__()
         self.save_hyperparameters(
@@ -93,10 +87,6 @@ class PhyloGNNClassifier(pl.LightningModule):
         self.scheduler_params = scheduler_params or {}
         self.eval_interval_steps = eval_interval_steps
         self.log_confusion_matrix = log_confusion_matrix
-
-        # Wandb settings
-        self.wandb_project = wandb_project
-        self.wandb_entity = wandb_entity
 
         # Metrics
         self.train_acc = Accuracy(task="multiclass", num_classes=num_classes)
