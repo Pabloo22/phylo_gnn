@@ -21,7 +21,9 @@ class PhyloCSVDataset(InMemoryDataset):
         force_reload: bool = False,
     ):
         if not callable(process_function):
-            raise ValueError("`process_function` must be a callable function.")
+            raise ValueError(
+                "`encoding_function` must be a callable function."
+            )
 
         self.csv_metadata = csv_metadata
         self.process_func = process_function
