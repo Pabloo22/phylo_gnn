@@ -107,19 +107,73 @@ class CSVMetadataConfig:
 @dataclass
 class FeatureEncoderConfig:
     cls: type[BaseEncoder] = HeteroPeriodicEncoder
+    node_output_dims: int | dict[str, int] = 32
+    edge_output_dims: int | dict[EdgeType, int] | None = None
     parameters: dict[str, Any] = field(default_factory=dict)
 
+    @property
+    def node_output_dims_dict(self) -> dict[str, int]:
+        if isinstance(self.node_output_dims, int):
+            return {
+                node_type: self.node_output_dims
+                for node_type in self.parameters["node_input_dims"].keys()
+            }
+        return self.node_output_dims
+
+    @property
+    def edge_output_dims_dict(self) -> dict[EdgeType, int] | None:
+        if isinstance(self.edge_output_dims, int):
+            edge_input_dims = self.parameters["edge_input_dims"]
+            if edge_input_dims is None:
+                return None
+            return {
+                edge_type: self.edge_output_dims
+                for edge_type in edge_input_dims.keys()
+            }
+        return self.edge_output_dims
+
     def initialize(self, **kwargs: Any) -> BaseEncoder:
-        return self.cls(**{**self.parameters, **kwargs})
+        return self.cls(
+            node_output_dims=self.node_output_dims_dict,
+            edge_output_dims=self.edge_output_dims_dict,
+            **{**self.parameters, **kwargs},
+        )
 
 
 @dataclass
 class MessagePassingConfig:
     cls: type[BaseMessagePassing] = HeteroConvMessagePassing
+    node_output_dims: int | dict[str, int] = 32
+    edge_output_dims: int | dict[EdgeType, int] | None = None
     parameters: dict[str, Any] = field(default_factory=dict)
 
+    @property
+    def node_output_dims_dict(self) -> dict[str, int]:
+        if isinstance(self.node_output_dims, int):
+            return {
+                node_type: self.node_output_dims
+                for node_type in self.parameters["node_input_dims"].keys()
+            }
+        return self.node_output_dims
+
+    @property
+    def edge_output_dims_dict(self) -> dict[EdgeType, int] | None:
+        if isinstance(self.edge_output_dims, int):
+            edge_input_dims = self.parameters["edge_input_dims"]
+            if edge_input_dims is None:
+                return None
+            return {
+                edge_type: self.edge_output_dims
+                for edge_type in edge_input_dims.keys()
+            }
+        return self.edge_output_dims
+
     def initialize(self, **kwargs: Any) -> BaseMessagePassing:
-        return self.cls(**{**self.parameters, **kwargs})
+        return self.cls(
+            node_output_dims=self.node_output_dims_dict,
+            edge_output_dims=self.edge_output_dims_dict,
+            **{**self.parameters, **kwargs},
+        )
 
 
 @dataclass
@@ -187,7 +241,7 @@ class Config:
     training_config: TrainingConfig = field(default_factory=TrainingConfig)
 
     def __post_init__(self):
-        # Set encoder input dimensions from dataset
+        # Get dimensions from dataset
         node_input_dims = (
             self.dataset.process_function_config.node_features_dims()
         )
@@ -195,37 +249,15 @@ class Config:
             self.dataset.process_function_config.edge_attributes_dims()
         )
 
+        # Setup encoder dimensions
         self.model.encoder.parameters["node_input_dims"] = node_input_dims
         self.model.encoder.parameters["edge_input_dims"] = edge_input_dims
 
-        # Get encoder output dimensions and ensure they're dictionaries
-        node_output_dims = self.model.encoder.parameters.get(
-            "node_output_dims"
-        )
-        edge_output_dims = self.model.encoder.parameters.get(
-            "edge_output_dims"
-        )
+        # Get dimensions using properties that handle conversion
+        node_output_dims = self.model.encoder.node_output_dims_dict
+        edge_output_dims = self.model.encoder.edge_output_dims_dict
 
-        # Convert integer output dims to dictionaries if needed
-        if isinstance(node_output_dims, int):
-            node_output_dims = {
-                node_type: node_output_dims
-                for node_type in node_input_dims.keys()
-            }
-            self.model.encoder.parameters["node_output_dims"] = (
-                node_output_dims
-            )
-
-        if edge_input_dims is not None and isinstance(edge_output_dims, int):
-            edge_output_dims = {
-                edge_type: edge_output_dims
-                for edge_type in edge_input_dims.keys()
-            }
-            self.model.encoder.parameters["edge_output_dims"] = (
-                edge_output_dims
-            )
-
-        # Set message passing input dimensions from encoder output
+        # Connect encoder to message passing
         self.model.message_passing.parameters["node_input_dims"] = (
             node_output_dims
         )
@@ -233,36 +265,11 @@ class Config:
             edge_output_dims
         )
 
-        # Get message passing output dimensions and ensure they're dictionaries
-        mp_node_output_dims = self.model.message_passing.parameters.get(
-            "node_output_dims"
-        )
-        mp_edge_output_dims = self.model.message_passing.parameters.get(
-            "edge_output_dims"
-        )
+        # Get message passing output dimensions
+        mp_node_output_dims = self.model.message_passing.node_output_dims_dict
+        mp_edge_output_dims = self.model.message_passing.edge_output_dims_dict
 
-        # Convert integer output dims to dictionaries if needed
-        if isinstance(mp_node_output_dims, int):
-            mp_node_output_dims = {
-                node_type: mp_node_output_dims
-                for node_type in node_output_dims.keys()
-            }
-            self.model.message_passing.parameters["node_output_dims"] = (
-                mp_node_output_dims
-            )
-
-        if edge_output_dims is not None and isinstance(
-            mp_edge_output_dims, int
-        ):
-            mp_edge_output_dims = {
-                edge_type: mp_edge_output_dims
-                for edge_type in edge_output_dims.keys()
-            }
-            self.model.message_passing.parameters["edge_output_dims"] = (
-                mp_edge_output_dims
-            )
-
-        # Set readout input dimensions from message passing output
+        # Connect message passing to readout
         self.model.readout.parameters["node_input_dims"] = mp_node_output_dims
         self.model.readout.parameters["edge_input_dims"] = mp_edge_output_dims
 
