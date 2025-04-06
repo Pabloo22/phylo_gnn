@@ -65,6 +65,4 @@ def get_node_feature_array(
     if feature_name == "position_in_level":
         return np.array(vector_tree.set_positions_in_level(), dtype=np.float32)
     return getattr(vector_tree, feature_name)
-    if feature_name == "position_in_level":
-        return np.astype(vector_tree.set_positions_in_level(), np.float32)
-    return getattr(vector_tree, feature_name)
+
