@@ -13,5 +13,6 @@ EXPERIMENT_1 = Config(
             csv_filenames=["87_10k_nwk_subset_1000.csv"],
             processed_filename="87_10k_nwk_subset_1000",
         ),
+        force_reload=True,
     ),
 )
