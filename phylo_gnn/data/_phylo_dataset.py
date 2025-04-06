@@ -43,7 +43,7 @@ class PhyloCSVDataset(InMemoryDataset):
 
     @property
     def processed_file_names(self) -> list[str]:
-        return [self.csv_metadata.dataset_name + ".pt"]
+        return [self.csv_metadata.processed_file_name + ".pt"]
 
     def download(self):
         pass

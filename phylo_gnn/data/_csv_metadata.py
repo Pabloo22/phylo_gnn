@@ -8,10 +8,11 @@ DEFAULT_LABEL_NAMES = ["BD", "HE", "ME", "SAT", "SR", "WW"]
 
 
 class CSVMetadata:
+
     def __init__(
         self,
         dataset_dir: Path | None = None,
-        dataset_name: str = "",
+        processed_filename: str = "",
         column_names: list[str] | None = None,
         label_names: list[str] | None = None,
         csv_filenames: list[str] | str | None = None,
@@ -19,7 +20,7 @@ class CSVMetadata:
         read_csv_kwargs: dict[str, Any] | None = None,
     ):
         self._dataset_dir = dataset_dir
-        self._dataset_name = dataset_name
+        self._dataset_name = processed_filename
         self.column_names = (
             column_names if column_names is not None else ["nwk", "label"]
         )
@@ -50,7 +51,7 @@ class CSVMetadata:
         self._dataset_dir = value
 
     @property
-    def dataset_name(self) -> str:
+    def processed_file_name(self) -> str:
         if not self._dataset_name:
             if len(self.csv_filenames) > 1:
                 raise ValueError(
@@ -60,8 +61,8 @@ class CSVMetadata:
             return self.csv_filenames[0].split(".")[0]
         return self._dataset_name
 
-    @dataset_name.setter
-    def dataset_name(self, value: str) -> None:
+    @processed_file_name.setter
+    def processed_file_name(self, value: str) -> None:
         self._dataset_name = value
 
     def _detect_csv_files(self) -> list[str]:
