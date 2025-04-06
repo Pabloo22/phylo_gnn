@@ -1,12 +1,14 @@
-import csv
 import os
+import pandas as pd
+import random
 
 from phylo_gnn import get_data_path
 
 
-def create_subset_csv(csv_path, n_rows, new_file_name=None):
+def create_subset_csv(csv_path, n_rows, new_file_name=None, random_seed=None):
     """
-    Creates a new CSV file containing only the first n rows from the original CSV.
+    Creates a new CSV file containing a random sample of n rows from the
+    original CSV.
 
     Parameters:
     -----------
@@ -15,7 +17,10 @@ def create_subset_csv(csv_path, n_rows, new_file_name=None):
     n_rows : int
         Number of rows to include in the new CSV (including header)
     new_file_name : str, optional
-        Name for the new CSV file. If None, '_subset_n' will be appended to the original filename
+        Name for the new CSV file. If None, '_subset_n' will be appended to the
+        original filename
+    random_seed : int, optional
+        Seed for random number generator for reproducible results
 
     Returns:
     --------
@@ -34,30 +39,45 @@ def create_subset_csv(csv_path, n_rows, new_file_name=None):
         base_name, ext = os.path.splitext(csv_path)
         new_file_name = f"{base_name}_subset_{n_rows}{ext}"
 
-    # Read the original CSV and write first n rows to new file
-    rows_written = 0
+    # Read the CSV file into a pandas DataFrame
+    df = pd.read_csv(csv_path)
 
-    with open(csv_path, "r", newline="") as input_file:
-        reader = csv.reader(input_file)
+    # Check if we're requesting more rows than available (minus header)
+    available_rows = len(df)
+    if n_rows > available_rows + 1:  # +1 for header
+        print(
+            f"Warning: Requested {n_rows} rows but only {available_rows} "
+            "rows available (plus header)"
+        )
+        n_rows = available_rows + 1
 
-        with open(new_file_name, "w", newline="") as output_file:
-            writer = csv.writer(output_file)
+    # Random sample of rows (n_rows - 1 to account for header which is always
+    # included)
+    sample_size = min(n_rows - 1, available_rows)
 
-            # Write rows until we reach n_rows or run out of rows
-            for row in reader:
-                writer.writerow(row)
-                rows_written += 1
+    if random_seed is not None:
+        random.seed(random_seed)
+        sampled_df = df.sample(n=sample_size, random_state=random_seed)
+    else:
+        sampled_df = df.sample(n=sample_size)
 
-                if rows_written >= n_rows:
-                    break
+    # Write the sampled DataFrame to CSV
+    sampled_df.to_csv(new_file_name, index=False)
 
-    print(f"Created subset CSV with {rows_written} rows at: {new_file_name}")
+    print(
+        f"Created random subset CSV with {sample_size + 1} rows at: "
+        f"{new_file_name}"
+    )
     return new_file_name
 
 
 if __name__ == "__main__":
-    data_path = get_data_path() / "raw" / "classification"
+    data_path = get_data_path() / "raw"
     csv_path = data_path / "87_10k_nwk.csv"
     n_rows = 1000
-    new_file_name = create_subset_csv(csv_path, n_rows)
+    # Set a random seed for reproducibility (optional)
+    random_seed = 42
+    new_file_name = create_subset_csv(
+        csv_path, n_rows, random_seed=random_seed
+    )
     print(f"New CSV file created: {new_file_name}")
