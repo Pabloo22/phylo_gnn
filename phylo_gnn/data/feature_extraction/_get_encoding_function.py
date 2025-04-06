@@ -10,16 +10,16 @@ from phylo_gnn.data.feature_extraction import (
     get_graph_classification_target,
     EdgeFeaturesExtractor,
     EdgeIndicesExtractor,
-    EncodingFunction,
+    ProcessFunction,
 )
 
 
-def get_encoding_function(
+def get_process_function(
     node_feature_extractor: NodeFeatureExtractor,
     edge_indices_extractor: EdgeIndicesExtractor | None = None,
     target_processor: TargetProcessor = get_graph_classification_target,
     edge_attribute_extractor: EdgeFeaturesExtractor | None = None,
-) -> EncodingFunction:
+) -> ProcessFunction:
 
     def encoding_function(newick: str, target_row: NDArray) -> HeteroData:
         tree_vector = VectorTree.from_newick(newick)

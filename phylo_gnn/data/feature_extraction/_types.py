@@ -12,7 +12,7 @@ from phylo_gnn.data.feature_extraction import VectorTree
 
 
 EdgeIndices = dict[EdgeType, NDArray[np.int64]]
-EncodingFunction = Callable[[str, NDArray], HeteroData]
+ProcessFunction = Callable[[str, NDArray], HeteroData]
 NodeFeatureExtractor = Callable[[VectorTree], dict[str, NDArray[np.float32]]]
 EdgeIndicesExtractor = Callable[[VectorTree], EdgeIndices]
 EdgeFeaturesExtractor = Callable[

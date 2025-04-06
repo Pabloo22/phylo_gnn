@@ -1,6 +1,6 @@
 from ._vector_tree import VectorTree
 from ._types import (
-    EncodingFunction,
+    ProcessFunction,
     EdgeFeaturesExtractor,
     EdgeIndicesExtractor,
     NodeFeatureExtractor,
@@ -29,14 +29,19 @@ from ._target_processors import (
     get_graph_classification_target,
 )
 from ._get_encoding_function import (
-    get_encoding_function,
+    get_process_function,
+)
+from ._node_features import (
+    get_node_feature_extractor,
+    get_node_feature_array,
 )
 
+
 __all__ = [
-    "get_encoding_function",
+    "get_process_function",
     "VectorTree",
     "NodeNames",
-    "EncodingFunction",
+    "ProcessFunction",
     "NodeFeatureExtractor",
     "EdgeIndicesExtractor",
     "EdgeFeaturesExtractor",
@@ -54,4 +59,6 @@ __all__ = [
     "EDGE_INDEX_EXTRACTORS_MAPPING",
     "get_edge_indices_extractor",
     "EdgeFeatureExtractor",
+    "get_node_feature_extractor",
+    "get_node_feature_array",
 ]
