@@ -14,7 +14,7 @@ def default_node_features() -> dict[str, list[FeaturePipeline]]:
             normalization_fn_name: "div_by_max_level"
         - feature_name: "topological_distance_to_root"
             normalization_fn_name: "div_by_max_level"
-        - feature_name: "level"
+        - feature_name: "levels"
             normalization_fn_name: "div_by_max_level"
         - feature_name: "position_in_level"
             normalization_fn_name: "div_by_num_nodes_in_level"
@@ -30,7 +30,7 @@ def default_node_features() -> dict[str, list[FeaturePipeline]]:
             FeaturePipeline(
                 "topological_distance_to_root", "div_by_max_level"
             ),
-            FeaturePipeline("level", "div_by_max_level"),
+            FeaturePipeline("levels", "div_by_max_level"),
             FeaturePipeline("position_in_level", "div_by_num_nodes_in_level"),
         ]
     }
