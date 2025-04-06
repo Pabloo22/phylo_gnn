@@ -37,7 +37,7 @@ class SimpleReadout(BaseReadout):
             **kwargs,
         )
 
-        valid_aggregators = ["sum", "max", "mean"]
+        valid_aggregators = ["sum", "max", "mean", "all"]
         if aggregator not in valid_aggregators:
             raise ValueError(
                 f"Invalid aggregator: {aggregator}. "
