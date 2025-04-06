@@ -10,4 +10,4 @@ def get_graph_classification_target(label_row: NDArray) -> torch.Tensor:
     assert (
         label_row.shape[0] == 1
     ), f"Label row must have shape [1], got {label_row.shape}."
-    return torch.tensor(label_row, dtype=torch.long)
+    return torch.tensor(label_row.astype(int), dtype=torch.long)
