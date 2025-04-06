@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 import numpy as np
 from numpy.typing import NDArray
 
@@ -10,13 +11,13 @@ from phylo_gnn.data.feature_extraction import (
 
 
 def get_node_feature_extractor(
-    feature_pipelines: dict[str, list[FeaturePipeline]],
+    feature_pipelines: Mapping[str, list[FeaturePipeline]],
 ) -> NodeFeatureExtractor:
     """Creates a node feature extractor based on the provided feature
     pipelines.
 
     Args:
-        feature_pipelines (dict[str, list[FeaturePipeline]]): A dictionary
+        feature_pipelines: A dictionary
             where keys are node types and values are lists of feature
             pipelines.
 

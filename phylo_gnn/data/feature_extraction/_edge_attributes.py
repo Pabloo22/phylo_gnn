@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from numpy.typing import NDArray
 import numpy as np
 from torch_geometric.typing import EdgeType  # type: ignore
@@ -44,7 +44,7 @@ EDGE_FEATURE_EXTRACTORS_MAPPING: dict[str, EdgeFeatureExtractor] = {
 
 
 def get_edge_feature_extractor(
-    feature_pipelines: dict[EdgeType, Iterable[FeaturePipeline]],
+    feature_pipelines: Mapping[EdgeType, Iterable[FeaturePipeline]],
 ) -> EdgeFeaturesExtractor:
     """Creates an edge feature extractor based on the provided feature
     pipelines.
@@ -60,13 +60,13 @@ def get_edge_feature_extractor(
 
     def edge_feature_extractor(
         vector_tree: VectorTree,
-        edge_indices_dict: dict[EdgeType, NDArray[np.int64]],
+        edge_indices_dict: Mapping[EdgeType, NDArray[np.int64]],
     ) -> dict[str, NDArray[np.float32]]:
         """Extracts edge features from a VectorTree object.
 
         Args:
-            vector_tree (VectorTree): The input VectorTree object.
-            edge_indices_dict (dict[EdgeType, NDArray[np.int64]]): A dictionary
+            vector_tree: The input VectorTree object.
+            edge_indices_dict: A dictionary
                 mapping edge types to their respective edge indices.
 
         Returns:
