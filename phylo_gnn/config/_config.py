@@ -107,8 +107,8 @@ class CSVMetadataConfig:
 @dataclass
 class FeatureEncoderConfig:
     cls: type[BaseEncoder] = HeteroPeriodicEncoder
-    node_output_dims: int | dict[str, int] = 28
-    edge_output_dims: int | dict[EdgeType, int] | None = 8
+    node_output_dims: int | dict[str, int] = 140
+    edge_output_dims: int | dict[EdgeType, int] | None = 64
     parameters: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -143,8 +143,8 @@ class FeatureEncoderConfig:
 @dataclass
 class MessagePassingConfig:
     cls: type[BaseMessagePassing] = HeteroConvMessagePassing
-    node_output_dims: int | dict[str, int] = 32
-    edge_output_dims: int | dict[EdgeType, int] | None = 8
+    node_output_dims: int | dict[str, int] = 140
+    edge_output_dims: int | dict[EdgeType, int] | None = 64
     parameters: dict[str, Any] = field(default_factory=dict)
 
     @property
