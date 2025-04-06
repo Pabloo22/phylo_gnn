@@ -1,6 +1,6 @@
+import random
 import os
 import pandas as pd
-import random
 
 from phylo_gnn import get_data_path
 
@@ -72,12 +72,8 @@ def create_subset_csv(csv_path, n_rows, new_file_name=None, random_seed=None):
 
 
 if __name__ == "__main__":
-    data_path = get_data_path() / "raw"
-    csv_path = data_path / "87_10k_nwk.csv"
-    n_rows = 1000
-    # Set a random seed for reproducibility (optional)
-    random_seed = 42
-    new_file_name = create_subset_csv(
-        csv_path, n_rows, random_seed=random_seed
+    create_subset_csv(
+        csv_path=get_data_path() / "raw" / "87_10k_nwk.csv",
+        n_rows=1000,
+        random_seed=42,
     )
-    print(f"New CSV file created: {new_file_name}")
