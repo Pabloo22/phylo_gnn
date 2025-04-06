@@ -107,7 +107,7 @@ class CSVMetadataConfig:
 @dataclass
 class FeatureEncoderConfig:
     cls: type[BaseEncoder] = HeteroPeriodicEncoder
-    node_output_dims: int | dict[str, int] = 32
+    node_output_dims: int | dict[str, int] = 28
     edge_output_dims: int | dict[EdgeType, int] | None = 8
     parameters: dict[str, Any] = field(default_factory=dict)
 
