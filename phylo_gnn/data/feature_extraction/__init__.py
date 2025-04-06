@@ -28,7 +28,7 @@ from ._edge_attributes import (
 from ._target_processors import (
     get_graph_classification_target,
 )
-from ._get_encoding_function import (
+from ._get_process_function import (
     get_process_function,
 )
 from ._node_features import (

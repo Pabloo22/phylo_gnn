@@ -56,7 +56,9 @@ def _add_node_features(
 ):
     """Adds node features to the hetero_data object."""
     for node_type, node_features in node_features_dict.items():
-        hetero_data[node_type].x = node_features
+        hetero_data[node_type].x = torch.tensor(
+            node_features, dtype=torch.float32
+        )
 
 
 def _add_edge_indices(
@@ -65,7 +67,9 @@ def _add_edge_indices(
 ):
     """Adds edge indices to the hetero_data object."""
     for edge_type, edge_indices in edge_indices_dict.items():
-        hetero_data[edge_type].edge_index = edge_indices
+        hetero_data[edge_type].edge_index = torch.tensor(
+            edge_indices, dtype=torch.int64
+        )
 
 
 def _add_edge_attributes(
@@ -82,7 +86,9 @@ def _add_edge_attributes(
             f"edges. Got {edge_attributes.shape[0]} and "
             f"{hetero_data[edge_type].edge_index.shape[1]} respectively."
         )
-        hetero_data[edge_type].edge_attr = edge_attributes
+        hetero_data[edge_type].edge_attr = torch.tensor(
+            edge_attributes, dtype=torch.float32
+        )
 
 
 def _add_target(
