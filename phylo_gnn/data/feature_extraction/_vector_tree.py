@@ -194,6 +194,18 @@ class VectorTree:
         return distances
 
     @cached_property
+    def topological_distance_to_root(self) -> NDArray[np.float32]:
+        """Returns the topological distance (number of edges) from each node
+        to the root."""
+        distances = np.zeros(self.num_nodes, dtype=np.float32)
+        for level, level_nodes in self.iter_by_level():
+            if level == 0:  # Skip root node
+                continue
+            parents = self.parent_indices[level_nodes]
+            distances[level_nodes] = distances[parents] + 1
+        return distances
+
+    @cached_property
     def distance_to_leaves(self) -> NDArray[np.float32]:
         """Returns the distance from each node to its descendant leaves.
 
