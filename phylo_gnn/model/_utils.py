@@ -75,6 +75,13 @@ def get_batch_dict(
     for edge_type in hetero_data.edge_types:
         if hasattr(hetero_data[edge_type], "batch"):
             edge_batch_dict[edge_type] = hetero_data[edge_type].batch
+        else:
+            # Derive from source nodes
+            src_type, _, _ = edge_type
+            edge_index = hetero_data[edge_type].edge_index
+            src_batch = batch_dict[src_type]
+            edge_batch = src_batch[edge_index[0]]
+            edge_batch_dict[edge_type] = edge_batch
 
     return batch_dict, edge_batch_dict
 
