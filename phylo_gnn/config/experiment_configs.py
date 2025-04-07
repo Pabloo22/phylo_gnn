@@ -31,7 +31,7 @@ DEBUG_2 = Config(
     ),
 )
 EXPERIMENT_1 = Config(
-    training_config=TrainingConfig(run_name="exp_1"),
+    training_config=TrainingConfig(run_name="exp_1", patience=25),
     dataset=PhyloCSVDatasetConfig(
         csv_metadata_config=CSVMetadataConfig(
             csv_filenames=[
