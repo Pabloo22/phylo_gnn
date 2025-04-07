@@ -1,8 +1,8 @@
 from ._base_message_passing import BaseMessagePassing
-from ._hetero_conv import HeteroConvMessagePassing
+from ._hgatv2_message_passing import HGATv2MessagePassing
 
 
 __all__ = [
     "BaseMessagePassing",
-    "HeteroConvMessagePassing",
+    "HGATv2MessagePassing",
 ]
