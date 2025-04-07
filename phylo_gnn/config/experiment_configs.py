@@ -6,8 +6,8 @@ from phylo_gnn.config import (
 )
 
 
-EXPERIMENT_1 = Config(
-    training_config=TrainingConfig(run_name="experiment_1"),
+DEBUG = Config(
+    training_config=TrainingConfig(run_name="debug"),
     dataset=PhyloCSVDatasetConfig(
         csv_metadata_config=CSVMetadataConfig(
             csv_filenames=["87_10k_nwk_subset_1000.csv"],
