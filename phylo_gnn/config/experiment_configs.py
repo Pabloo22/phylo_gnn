@@ -3,6 +3,8 @@ from phylo_gnn.config import (
     TrainingConfig,
     PhyloCSVDatasetConfig,
     CSVMetadataConfig,
+    PhyloGNNClassifierConfig,
+    MessagePassingConfig,
 )
 
 
@@ -14,5 +16,19 @@ DEBUG = Config(
             processed_filename="87_10k_nwk_subset_1000",
         ),
         force_reload=False,
+    ),
+)
+DEBUG_2 = Config(
+    training_config=TrainingConfig(run_name="debug_2"),
+    dataset=PhyloCSVDatasetConfig(
+        csv_metadata_config=CSVMetadataConfig(
+            csv_filenames=["87_10k_nwk.csv"],
+            processed_filename="87_10k_nwk",
+        ),
+        model=PhyloGNNClassifierConfig(
+            message_passing=MessagePassingConfig(
+                parameters={"layer_norm": False}
+            ),
+        ),
     ),
 )
