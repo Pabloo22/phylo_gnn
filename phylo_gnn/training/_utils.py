@@ -62,13 +62,23 @@ def initialize_trainer(
     max_epochs: int = 100,
     log_every_n_steps: int = 20,
     detect_anomaly: bool = False,
+    gpu_id: int | None = 1,
     **kwargs,
 ) -> pl.Trainer:
+    if gpu_id is not None:
+        devices_arg: list[int] | str = [gpu_id]
+        accelerator_arg = "gpu"
+    else:
+        # Fallback or default behavior (e.g., use all GPUs or CPU)
+        devices_arg = "auto"
+        accelerator_arg = "auto"
     return pl.Trainer(
         logger=logger,
         callbacks=callbacks,
         max_epochs=max_epochs,
         detect_anomaly=detect_anomaly,
         log_every_n_steps=log_every_n_steps,
+        accelerator=accelerator_arg,
+        devices=devices_arg,
         **kwargs,
     )
