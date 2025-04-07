@@ -61,7 +61,7 @@ def initialize_trainer(
     callbacks: list[Callback],
     max_epochs: int = 100,
     log_every_n_steps: int = 20,
-    detect_anomaly: bool = True,
+    detect_anomaly: bool = False,
     **kwargs,
 ) -> pl.Trainer:
     return pl.Trainer(
