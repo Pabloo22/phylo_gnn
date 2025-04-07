@@ -38,7 +38,7 @@ def configure_callbacks(
     # Model checkpoint callback
     checkpoint_callback = ModelCheckpoint(
         dirpath=get_project_path() / "models",
-        filename="model-{{epoch:02d}}-{{val_loss:.2f}}-{{val_f1:.4f}}",
+        filename=f"model-{{epoch:02d}}-{{val_loss:.2f}}-{{val_f1:.4f}}",
         monitor=monitor,
         mode=mode,
         save_top_k=3,
