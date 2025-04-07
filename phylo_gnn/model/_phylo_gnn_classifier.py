@@ -555,7 +555,7 @@ class PhyloGNNClassifier(pl.LightningModule):
         """
         if isinstance(self.logger, pl.loggers.WandbLogger):
             # Log model architecture as text
-            self.logger.experiment.config.update(
+            self.logger.log_hyperparams(
                 {
                     "model_summary": str(self),
                     "encoder": str(self.encoder.__class__.__name__),
@@ -563,6 +563,9 @@ class PhyloGNNClassifier(pl.LightningModule):
                         self.message_passing.__class__.__name__
                     ),
                     "readout": str(self.readout.__class__.__name__),
+                    "encoder_hparams": self.encoder.hparams,
+                    "message_passing_hparams": self.message_passing.hparams,
+                    "readout_hparams": self.readout.hparams,
                     "num_classes": self.num_classes,
                     "learning_rate": self.learning_rate,
                     "weight_decay": self.weight_decay,
