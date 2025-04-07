@@ -4,16 +4,16 @@ import pytorch_lightning as pl
 from pytorch_lightning.utilities import rank_zero_only
 import torch
 import torch.nn.functional as F
-import wandb
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import ReduceLROnPlateau, CosineAnnealingLR
 from torchmetrics import Accuracy, F1Score, Precision, Recall
-
 import matplotlib.pyplot as plt
 from sklearn.metrics import (  # type: ignore
     confusion_matrix,
     ConfusionMatrixDisplay,
 )
+from torch_geometric.data import HeteroData  # type: ignore
+import wandb
 
 from phylo_gnn.model import (
     get_node_features_dict,
@@ -176,7 +176,7 @@ class PhyloGNNClassifier(pl.LightningModule):
 
         return logits
 
-    def _shared_step(self, batch, unused_batch_idx, stage: str):
+    def _shared_step(self, batch: HeteroData, unused_batch_idx, stage: str):
         """Shared computation for training, validation, and test steps.
 
         Args:
@@ -187,6 +187,16 @@ class PhyloGNNClassifier(pl.LightningModule):
         Returns:
             Dict: Dictionary containing loss and other metrics
         """
+        # Calculate batch size from node data
+        batch_size = 0
+        for node_type in batch.node_types:
+            if hasattr(batch[node_type], "batch"):
+                batch_size = int(batch[node_type].batch.max()) + 1
+                break
+
+        if batch_size == 0:
+            batch_size = 1
+
         # Get the targets
         if hasattr(batch, "y"):
             targets = batch.y
@@ -240,6 +250,7 @@ class PhyloGNNClassifier(pl.LightningModule):
             "loss": loss,
             "preds": preds,
             "targets": targets,
+            "batch_size": batch_size,
         }
 
     def training_step(  # pylint: disable=arguments-differ
@@ -272,16 +283,28 @@ class PhyloGNNClassifier(pl.LightningModule):
             on_step=True,
             on_epoch=True,
             prog_bar=True,
+            batch_size=result["batch_size"],
         )
-        self.log("train/f1", self.train_f1, on_step=True, on_epoch=True)
+        self.log(
+            "train/f1",
+            self.train_f1,
+            on_step=True,
+            on_epoch=True,
+            batch_size=result["batch_size"],
+        )
         self.log(
             "train/precision",
             self.train_precision,
             on_step=False,
             on_epoch=True,
+            batch_size=result["batch_size"],
         )
         self.log(
-            "train/recall", self.train_recall, on_step=False, on_epoch=True
+            "train/recall",
+            self.train_recall,
+            on_step=False,
+            on_epoch=True,
+            batch_size=result["batch_size"],
         )
 
         # Step-based evaluation
@@ -298,6 +321,7 @@ class PhyloGNNClassifier(pl.LightningModule):
                 float(self.train_step_count),
                 on_step=True,
                 on_epoch=False,
+                batch_size=result["batch_size"],
             )
 
         return loss
@@ -315,6 +339,7 @@ class PhyloGNNClassifier(pl.LightningModule):
             Dict: Dictionary containing validation metrics
         """
         result = self._shared_step(batch, batch_idx, "val")
+        batch_size = result["batch_size"]
 
         # Log metrics
         self.log(
@@ -323,6 +348,7 @@ class PhyloGNNClassifier(pl.LightningModule):
             on_step=False,
             on_epoch=True,
             prog_bar=True,
+            batch_size=batch_size,
         )
         self.log(
             "val/acc",
@@ -330,14 +356,30 @@ class PhyloGNNClassifier(pl.LightningModule):
             on_step=False,
             on_epoch=True,
             prog_bar=True,
+            batch_size=batch_size,
         )
         self.log(
-            "val/f1", self.val_f1, on_step=False, on_epoch=True, prog_bar=True
+            "val/f1",
+            self.val_f1,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            batch_size=batch_size,
         )
         self.log(
-            "val/precision", self.val_precision, on_step=False, on_epoch=True
+            "val/precision",
+            self.val_precision,
+            on_step=False,
+            on_epoch=True,
+            batch_size=batch_size,
         )
-        self.log("val/recall", self.val_recall, on_step=False, on_epoch=True)
+        self.log(
+            "val/recall",
+            self.val_recall,
+            on_step=False,
+            on_epoch=True,
+            batch_size=batch_size,
+        )
 
         return result
 
@@ -354,15 +396,44 @@ class PhyloGNNClassifier(pl.LightningModule):
             Dict: Dictionary containing test metrics
         """
         result = self._shared_step(batch, batch_idx, "test")
+        batch_size = result["batch_size"]
 
         # Log metrics
-        self.log("test/loss", result["loss"], on_step=False, on_epoch=True)
-        self.log("test/acc", self.test_acc, on_step=False, on_epoch=True)
-        self.log("test/f1", self.test_f1, on_step=False, on_epoch=True)
         self.log(
-            "test/precision", self.test_precision, on_step=False, on_epoch=True
+            "test/loss",
+            result["loss"],
+            on_step=False,
+            on_epoch=True,
+            batch_size=batch_size,
         )
-        self.log("test/recall", self.test_recall, on_step=False, on_epoch=True)
+        self.log(
+            "test/acc",
+            self.test_acc,
+            on_step=False,
+            on_epoch=True,
+            batch_size=batch_size,
+        )
+        self.log(
+            "test/f1",
+            self.test_f1,
+            on_step=False,
+            on_epoch=True,
+            batch_size=batch_size,
+        )
+        self.log(
+            "test/precision",
+            self.test_precision,
+            on_step=False,
+            on_epoch=True,
+            batch_size=batch_size,
+        )
+        self.log(
+            "test/recall",
+            self.test_recall,
+            on_step=False,
+            on_epoch=True,
+            batch_size=batch_size,
+        )
 
         return result
 
