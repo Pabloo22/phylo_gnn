@@ -354,6 +354,7 @@ class PhyloGNNClassifier(pl.LightningModule):
             on_epoch=True,
             prog_bar=True,
             batch_size=batch_size,
+            sync_dist=True,
         )
         self.log(
             "val/acc",
@@ -362,6 +363,7 @@ class PhyloGNNClassifier(pl.LightningModule):
             on_epoch=True,
             prog_bar=True,
             batch_size=batch_size,
+            sync_dist=True,
         )
         self.log(
             "val/f1",
@@ -370,6 +372,7 @@ class PhyloGNNClassifier(pl.LightningModule):
             on_epoch=True,
             prog_bar=True,
             batch_size=batch_size,
+            sync_dist=True,
         )
         self.log(
             "val/precision",
@@ -377,6 +380,7 @@ class PhyloGNNClassifier(pl.LightningModule):
             on_step=False,
             on_epoch=True,
             batch_size=batch_size,
+            sync_dist=True,
         )
         self.log(
             "val/recall",
@@ -384,6 +388,7 @@ class PhyloGNNClassifier(pl.LightningModule):
             on_step=False,
             on_epoch=True,
             batch_size=batch_size,
+            sync_dist=True,
         )
 
         return result
@@ -410,6 +415,7 @@ class PhyloGNNClassifier(pl.LightningModule):
             on_step=False,
             on_epoch=True,
             batch_size=batch_size,
+            sync_dist=True,
         )
         self.log(
             "test/acc",
@@ -417,6 +423,7 @@ class PhyloGNNClassifier(pl.LightningModule):
             on_step=False,
             on_epoch=True,
             batch_size=batch_size,
+            sync_dist=True,
         )
         self.log(
             "test/f1",
@@ -424,6 +431,7 @@ class PhyloGNNClassifier(pl.LightningModule):
             on_step=False,
             on_epoch=True,
             batch_size=batch_size,
+            sync_dist=True,
         )
         self.log(
             "test/precision",
@@ -431,6 +439,7 @@ class PhyloGNNClassifier(pl.LightningModule):
             on_step=False,
             on_epoch=True,
             batch_size=batch_size,
+            sync_dist=True,
         )
         self.log(
             "test/recall",
@@ -438,6 +447,7 @@ class PhyloGNNClassifier(pl.LightningModule):
             on_step=False,
             on_epoch=True,
             batch_size=batch_size,
+            sync_dist=True,
         )
 
         return result
@@ -447,7 +457,13 @@ class PhyloGNNClassifier(pl.LightningModule):
         # Log per-class F1 scores
         f1_per_class = self.val_f1_per_class.compute()
         for i, f1 in enumerate(f1_per_class):
-            self.log(f"val/f1_class_{i}", f1, on_step=False, on_epoch=True)
+            self.log(
+                f"val/f1_class_{i}",
+                f1,
+                on_step=False,
+                on_epoch=True,
+                sync_dist=True,
+            )
 
         # Log confusion matrix
         if self.log_confusion_matrix and self.val_preds:
@@ -466,7 +482,13 @@ class PhyloGNNClassifier(pl.LightningModule):
         # Log per-class F1 scores
         f1_per_class = self.test_f1_per_class.compute()
         for i, f1 in enumerate(f1_per_class):
-            self.log(f"test/f1_class_{i}", f1, on_step=False, on_epoch=True)
+            self.log(
+                f"test/f1_class_{i}",
+                f1,
+                on_step=False,
+                on_epoch=True,
+                sync_dist=True,
+            )
 
         # Log confusion matrix
         if self.log_confusion_matrix and self.test_preds:
