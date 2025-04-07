@@ -4,6 +4,7 @@ from ._utils import (
     get_edge_indices_dict,
     get_batch_dict,
     get_mlp,
+    STR_TO_ACTIVATION,
 )
 
 from ._phylo_gnn_classifier import PhyloGNNClassifier
@@ -15,4 +16,5 @@ __all__ = [
     "get_batch_dict",
     "get_mlp",
     "PhyloGNNClassifier",
+    "STR_TO_ACTIVATION",
 ]
