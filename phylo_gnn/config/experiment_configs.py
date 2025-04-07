@@ -25,10 +25,8 @@ DEBUG_2 = Config(
             csv_filenames=["87_10k_nwk.csv"],
             processed_filename="87_10k_nwk",
         ),
-        model=PhyloGNNClassifierConfig(
-            message_passing=MessagePassingConfig(
-                parameters={"layer_norm": False}
-            ),
-        ),
+    ),
+    model=PhyloGNNClassifierConfig(
+        message_passing=MessagePassingConfig(parameters={"layer_norm": False}),
     ),
 )
