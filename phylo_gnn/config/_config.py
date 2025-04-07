@@ -8,7 +8,7 @@ from torch_geometric.typing import EdgeType  # type: ignore
 from phylo_gnn.model.feature_encoders import BaseEncoder, HeteroPeriodicEncoder
 from phylo_gnn.model.message_passing import (
     BaseMessagePassing,
-    HeteroConvMessagePassing,
+    HGATv2MessagePassing,
 )
 from phylo_gnn.model import PhyloGNNClassifier
 from phylo_gnn.model.readouts import BaseReadout, SimpleReadout
@@ -142,7 +142,7 @@ class FeatureEncoderConfig:
 
 @dataclass
 class MessagePassingConfig:
-    cls: type[BaseMessagePassing] = HeteroConvMessagePassing
+    cls: type[BaseMessagePassing] = HGATv2MessagePassing
     node_output_dims: int | dict[str, int] = 140
     edge_output_dims: int | dict[EdgeType, int] | None = 64
     parameters: dict[str, Any] = field(default_factory=dict)
@@ -267,6 +267,9 @@ class Config:
         )
         self.model.message_passing.parameters["edge_input_dims"] = (
             edge_output_dims
+        )
+        self.model.message_passing.parameters["edge_types"] = (
+            self.dataset.process_function_config.edge_types
         )
 
         # Get message passing output dimensions
