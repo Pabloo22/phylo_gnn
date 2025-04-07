@@ -34,6 +34,7 @@ class NodeNames(str, enum.Enum):
     NODE = "node"
     INTERNAL = "internal"
     LEAF = "leaf"
+    LEVEL = "level"
 
 
 class EdgeNames(str, enum.Enum):
@@ -43,6 +44,8 @@ class EdgeNames(str, enum.Enum):
     HAS_ANCESTOR = "has_ancestor"
     HAS_DESCENDANT = "has_descendant"
     HAS_ADJACENT_LEVEL_POSITION = "has_adjacent_level_position"
+    IS_IN_LEVEL = "is_in_level"
+    HAS_NODE = "has_node"
 
 
 class FeaturePipeline(NamedTuple):
