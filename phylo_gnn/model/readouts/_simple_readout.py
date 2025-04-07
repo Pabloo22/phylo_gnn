@@ -103,21 +103,7 @@ class SimpleReadout(BaseReadout):
         batch_dict: dict[NodeType, torch.Tensor] | None = None,
         edge_batch_dict: dict[EdgeType, torch.Tensor] | None = None,
     ) -> torch.Tensor:
-        """Forward pass aggregating node and edge features.
-
-        Args:
-            node_features_dict: Dict mapping node types to feature tensors
-                [num_nodes, feature_dim]
-            edge_attributes_dict: Dict mapping edge types to attribute tensors
-                [num_edges, feature_dim]
-            batch_dict: Dict mapping node types to batch assignment tensors
-                [num_nodes]
-            edge_batch_dict: Dict mapping edge types to batch assignment
-                tensors [num_edges]
-
-        Returns:
-            Tensor of output embeddings [batch_size, output_dim]
-        """
+        """Forward pass aggregating node and edge features."""
         pool_func = self._get_pooling_function()
         all_features = []
 
@@ -125,19 +111,11 @@ class SimpleReadout(BaseReadout):
         for node_type in sorted(node_features_dict.keys()):
             features = node_features_dict[node_type]
 
-            # Get batch indices for this node type
-            if batch_dict is not None and node_type in batch_dict:
-                batch = batch_dict[node_type]
-            elif self.training and batch_dict is None:
+            if batch_dict is None or node_type not in batch_dict:
                 raise ValueError(
-                    "Batch information is required during training. "
-                    "Please provide batch_dict."
+                    f"Batch information is missing for node type: {node_type}"
                 )
-            else:
-                # If batch information is not available, assume single graph
-                batch = torch.zeros(
-                    features.size(0), dtype=torch.long, device=features.device
-                )
+            batch = batch_dict[node_type]
 
             # Aggregate features per graph
             agg_features = pool_func(features, batch)
@@ -148,41 +126,19 @@ class SimpleReadout(BaseReadout):
             for edge_type in sorted(edge_attributes_dict.keys()):
                 attributes = edge_attributes_dict[edge_type]
 
-                # Get batch indices for this edge type
-                if (
-                    edge_batch_dict is not None
-                    and edge_type in edge_batch_dict
-                ):
-                    batch = edge_batch_dict[edge_type]
-                elif self.training and edge_batch_dict is None:
+                if edge_batch_dict is None or edge_type not in edge_batch_dict:
                     raise ValueError(
-                        "Batch information is required during training. "
-                        "Please provide edge_batch_dict or set "
-                        "edge_attributes_dict to None."
+                        f"Batch information is missing for: {edge_type}"
                     )
-                else:
-                    # If batch information is not available, assume single
-                    # graph
-                    batch = torch.zeros(
-                        attributes.size(0),
-                        dtype=torch.long,
-                        device=attributes.device,
-                    )
+                batch = edge_batch_dict[edge_type]
 
                 # Aggregate features per graph
                 agg_attributes = pool_func(attributes, batch)
                 all_features.append(agg_attributes)
 
-        # Handle case where no features were found
         if not all_features:
             raise ValueError("No node or edge features were provided")
 
-        # Concatenate all aggregated features along feature dimension
-        # Shape: [batch_size, total_feature_dim]
         batched_features = torch.cat(all_features, dim=1)
-
-        # Apply MLP to get logits
-        # Shape: [batch_size, output_dim]
         logits = self.mlp(batched_features)
-
         return logits
