@@ -41,11 +41,7 @@ def default_edge_attributes() -> (
 ):
     return {
         ("node", "has_parent", "node"): [
-            FeaturePipeline("distances", "log1p"),
-            FeaturePipeline("topological_distances", "div_by_max_level"),
+            FeaturePipeline("distances", "log1p")
         ],
-        ("node", "has_child", "node"): [
-            FeaturePipeline("distances", "log1p"),
-            FeaturePipeline("topological_distances", "div_by_max_level"),
-        ],
+        ("node", "has_child", "node"): [FeaturePipeline("distances", "log1p")],
     }
