@@ -53,6 +53,13 @@ def get_node_feature_extractor(
                 if feature_array.ndim == 1:
                     feature_array = feature_array.reshape(-1, 1)
                 arrays.append(feature_array)
+            for array in arrays:
+                assert array.shape == arrays[0].shape, (
+                    f"Feature arrays for node type '{node_type}' "
+                    f"have different shapes: {array.shape} vs. "
+                    f"{arrays[0].shape}"
+                )
+                assert not isinstance(array, list)
             node_features_dict[node_type] = np.concatenate(arrays, axis=1)
         return node_features_dict
 
@@ -65,4 +72,3 @@ def get_node_feature_array(
     if feature_name == "position_in_level":
         return np.array(vector_tree.set_positions_in_level(), dtype=np.float32)
     return getattr(vector_tree, feature_name)
-
