@@ -275,7 +275,12 @@ class PhyloGNNClassifier(pl.LightningModule):
 
         # Log metrics
         self.log(
-            "train/loss", loss, on_step=True, on_epoch=True, prog_bar=True
+            "train/loss",
+            loss,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            batch_size=result["batch_size"],
         )
         self.log(
             "train/acc",
