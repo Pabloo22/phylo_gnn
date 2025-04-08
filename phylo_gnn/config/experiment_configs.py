@@ -72,3 +72,33 @@ EXPERIMENT_2 = Config(
         scheduler=None,
     ),
 )
+
+
+EXPERIMENT_3 = Config(
+    training_config=TrainingConfig(
+        run_name="exp_3_readout_lr",
+        patience=40,
+        num_workers=1,
+    ),
+    dataset=PhyloCSVDatasetConfig(
+        csv_metadata_config=CSVMetadataConfig(
+            csv_filenames=[
+                "87_10k_nwk.csv",
+                "489_10k_nwk.csv",
+                "674_10k_nwk.csv",
+            ],
+            processed_filename="basic_processing_all",
+        ),
+    ),
+    model=PhyloGNNClassifierConfig(
+        message_passing=MessagePassingConfig(
+            parameters={
+                "layer_norm": False,
+                "dropout": 0.0,
+            }
+        ),
+        scheduler=None,
+        learning_rate=0.0003,
+        weight_decay=0.00001,
+    ),
+)
