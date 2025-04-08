@@ -566,3 +566,17 @@ class VectorTree:
         format."""
         edge_index = self.parent_to_children_edge_index
         return np.vstack((edge_index[1], edge_index[0]))
+
+    @cached_property
+    def num_nodes_by_level(self) -> NDArray[np.int64]:
+        """Returns the number of nodes at each level of the tree."""
+        return np.bincount(self.levels, minlength=self.max_level + 1)
+
+    def avg_attr_by_level(
+        self, attr: str = "branch_lengths"
+    ) -> NDArray[np.float32]:
+        """Returns the average branch length at each level of the tree."""
+        # Sum branch lengths and count nodes per level in a vectorized way.
+        sum_per_level = np.bincount(self.levels, weights=getattr(self, attr))
+        avg_per_level = sum_per_level / self.num_nodes_by_level
+        return avg_per_level.astype(np.float32)
