@@ -50,7 +50,7 @@ EXPERIMENT_1 = Config(
 )
 EXPERIMENT_2 = Config(
     training_config=TrainingConfig(
-        run_name="exp_2", patience=40, num_workers=15
+        run_name="exp_2", patience=40, num_workers=1
     ),
     dataset=PhyloCSVDatasetConfig(
         csv_metadata_config=CSVMetadataConfig(
