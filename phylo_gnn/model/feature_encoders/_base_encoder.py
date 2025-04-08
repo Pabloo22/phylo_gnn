@@ -21,6 +21,14 @@ class BaseEncoder(nn.Module):
         self.edge_input_dims = edge_input_dims
         self.edge_output_dims = edge_output_dims
         self.hparams = kwargs
+        self.hparams.update(
+            {
+                "node_input_dims": node_input_dims,
+                "node_output_dims": node_output_dims,
+                "edge_input_dims": edge_input_dims,
+                "edge_output_dims": edge_output_dims,
+            }
+        )
 
     @overload
     def forward(
