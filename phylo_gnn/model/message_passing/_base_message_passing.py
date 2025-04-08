@@ -35,6 +35,7 @@ class BaseMessagePassing(nn.Module):
                 "edge_output_dims": edge_output_dims,
             }
         )
+
     @property
     def edge_types(self) -> list[EdgeType]:
         """Returns the edge types."""
