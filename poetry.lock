@@ -2862,17 +2862,6 @@ modelhub = ["huggingface_hub"]
 test = ["onnx", "onnxruntime", "pytest", "pytest-cov"]
 
 [[package]]
-name = "torch-summary"
-version = "1.4.5"
-description = "Model summary in PyTorch, based off of the original torchsummary."
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "torch_summary-1.4.5-py3-none-any.whl", hash = "sha256:6127efb631f34ba8cbd28e92e8f7ddc2903ea0cbc44c80f15b7363b8f558cd8c"},
-    {file = "torch_summary-1.4.5.tar.gz", hash = "sha256:44eac21777dbbda7b8404d57a43c09d83fd9c93d0c1f0c960b5083ccb24d6d21"},
-]
-
-[[package]]
 name = "tornado"
 version = "6.4.2"
 description = "Tornado is a Python web framework and asynchronous networking library, originally developed at FriendFeed."
@@ -3183,4 +3172,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "e1a29be17ea573e151606d452f31fae0b6a559de513dad75f5584da1b2b1f5a1"
+content-hash = "81f05f97a7a611c821cad919af1355ea342b7cd9861dd0246561a67ea034c212"
