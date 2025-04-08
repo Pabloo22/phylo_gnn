@@ -3,6 +3,8 @@ import torch
 from torch import nn
 from torch_geometric.typing import EdgeType, NodeType  # type: ignore[import]
 
+from phylo_gnn.model import transform_edge_indices_keys_to_str
+
 
 class BaseEncoder(nn.Module):
     """Base class for node feature encoders"""
@@ -25,8 +27,12 @@ class BaseEncoder(nn.Module):
             {
                 "node_input_dims": node_input_dims,
                 "node_output_dims": node_output_dims,
-                "edge_input_dims": edge_input_dims,
-                "edge_output_dims": edge_output_dims,
+                "edge_input_dims": transform_edge_indices_keys_to_str(
+                    edge_input_dims
+                ),
+                "edge_output_dims": transform_edge_indices_keys_to_str(
+                    edge_output_dims
+                ),
             }
         )
 

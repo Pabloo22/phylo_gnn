@@ -149,9 +149,11 @@ def get_mlp(
 
 
 def transform_edge_indices_keys_to_str(
-    edge_indices_dict: dict[EdgeType, Any],
-) -> dict[str, Any]:
+    edge_indices_dict: dict[EdgeType, Any] | None,
+) -> dict[str, Any] | None:
     """Transform edge indices keys to strings."""
+    if edge_indices_dict is None:
+        return None
     new_dict = {}
     for (a, to, b), value in edge_indices_dict.items():
         new_key = f"{a}___{to}____{b}"

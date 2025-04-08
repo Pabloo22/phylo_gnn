@@ -4,6 +4,8 @@ import torch
 from torch import nn
 from torch_geometric.typing import EdgeType  # type: ignore
 
+from phylo_gnn.model import transform_edge_indices_keys_to_str
+
 
 class BaseMessagePassing(nn.Module):
     """Base class for message passing"""
@@ -14,7 +16,7 @@ class BaseMessagePassing(nn.Module):
         node_output_dims: dict[str, int] | int,
         edge_types: list[EdgeType] | None = None,
         edge_input_dims: dict[EdgeType, int] | None = None,
-        edge_output_dims: dict[EdgeType, int] | int | None = None,
+        edge_output_dims: dict[EdgeType, int] | None = None,
         **kwargs,
     ):
         super().__init__()
@@ -31,8 +33,12 @@ class BaseMessagePassing(nn.Module):
                 "node_input_dims": node_input_dims,
                 "node_output_dims": node_output_dims,
                 "edge_types": edge_types,
-                "edge_input_dims": edge_input_dims,
-                "edge_output_dims": edge_output_dims,
+                "edge_input_dims": transform_edge_indices_keys_to_str(
+                    edge_input_dims
+                ),
+                "edge_output_dims": transform_edge_indices_keys_to_str(
+                    edge_output_dims
+                ),
             }
         )
 
