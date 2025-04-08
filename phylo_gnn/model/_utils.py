@@ -1,4 +1,4 @@
-from typing import Callable, Optional, List
+from typing import Callable, Any
 from torch_geometric.data import HeteroData  # type: ignore
 from torch_geometric.typing import EdgeType  # type: ignore
 import torch
@@ -89,10 +89,10 @@ def get_batch_dict(
 def get_mlp(
     input_dim: int,
     output_dim: int,
-    hidden_dims: Optional[List[int]] = None,
+    hidden_dims: list[int] | None = None,
     dropout: float = 0.1,
     activation: Callable[[], nn.Module] | str = "relu",
-    output_activation: Optional[Callable[[], nn.Module]] = None,
+    output_activation: Callable[[], nn.Module] | None = None,
 ) -> nn.Sequential:
     """Create a Multi-Layer Perceptron with customizable architecture.
 
@@ -146,3 +146,14 @@ def get_mlp(
         layers.append(output_activation())
 
     return nn.Sequential(*layers)
+
+
+def transform_edge_indices_keys_to_str(
+    edge_indices_dict: dict[EdgeType, Any],
+) -> dict[str, Any]:
+    """Transform edge indices keys to strings."""
+    new_dict = {}
+    for (a, to, b), value in edge_indices_dict.items():
+        new_key = f"{a}___{to}____{b}"
+        new_dict[new_key] = value
+    return new_dict
