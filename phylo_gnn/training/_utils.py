@@ -62,7 +62,7 @@ def initialize_trainer(
     max_epochs: int = 100,
     log_every_n_steps: int = 20,
     detect_anomaly: bool = False,
-    gpu_id: int | None = 1,
+    gpu_id: int | None = None,
     **kwargs,
 ) -> pl.Trainer:
     if gpu_id is not None:
