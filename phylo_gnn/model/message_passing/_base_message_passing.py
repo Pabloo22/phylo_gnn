@@ -26,7 +26,15 @@ class BaseMessagePassing(nn.Module):
         kwargs_copy = kwargs.copy()
         kwargs_copy.pop("nn", None)
         self.hparams = kwargs_copy
-
+        self.hparams.update(
+            {
+                "node_input_dims": node_input_dims,
+                "node_output_dims": node_output_dims,
+                "edge_types": edge_types,
+                "edge_input_dims": edge_input_dims,
+                "edge_output_dims": edge_output_dims,
+            }
+        )
     @property
     def edge_types(self) -> list[EdgeType]:
         """Returns the edge types."""
