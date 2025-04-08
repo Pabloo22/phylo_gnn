@@ -45,3 +45,38 @@ def default_edge_attributes() -> (
         ],
         ("node", "has_child", "node"): [FeaturePipeline("distances", "log1p")],
     }
+
+
+def node_features_with_level_nodes() -> dict[str, list[FeaturePipeline]]:
+    return {
+        "node": [
+            FeaturePipeline("branch_lengths", "log1p"),
+            FeaturePipeline("distance_to_root", "log1p"),
+            FeaturePipeline("distance_to_leaves", "log1p"),
+            FeaturePipeline(
+                "topological_distance_to_leaves", "div_by_max_level"
+            ),
+            FeaturePipeline(
+                "topological_distance_to_root", "div_by_max_level"
+            ),
+            FeaturePipeline("levels", "div_by_max_level"),
+            FeaturePipeline("position_in_level", "div_by_num_nodes_in_level"),
+        ],
+        "level": [
+            FeaturePipeline("num_nodes", "div_by_avg_num_nodes_by_level"),
+            FeaturePipeline("num_nodes", "log1p"),
+            FeaturePipeline("level_node_id", "div_by_max_level"),
+            FeaturePipeline("level_node_id", "log1p"),
+            FeaturePipeline("avg_distance_to_root_by_level", "log1p"),
+            FeaturePipeline("avg_distance_to_leaves_by_level", "log1p"),
+            FeaturePipeline(
+                "avg_topological_distance_to_leaves_by_level",
+                "div_by_max_level",
+            ),
+            FeaturePipeline(
+                "avg_topological_distance_to_root_by_level",
+                "div_by_max_level",
+            ),
+            FeaturePipeline("avg_branch_lengths_by_level", "log1p"),
+        ],
+    }
