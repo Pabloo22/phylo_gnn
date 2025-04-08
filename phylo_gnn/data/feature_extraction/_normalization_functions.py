@@ -37,10 +37,23 @@ def div_by_num_nodes_in_level(
     return x
 
 
+def div_by_avg_num_nodes_by_level(
+    x: NDArray[np.float32],
+    vector_tree: VectorTree,
+) -> NDArray[np.float32]:
+    """Divides the values by the average number of nodes in the level."""
+    num_levels = vector_tree.max_level + 1
+    avg_num_nodes = vector_tree.num_nodes / num_levels
+    if avg_num_nodes == 0:
+        return x
+    return x / float(avg_num_nodes)
+
+
 NORMALIZATION_FUNCTIONS_MAPPING: dict[str, NormalizationFunction] = {
     "minmax": lambda x, _: (x - x.min()) / (x.max() - x.min()),
     "log1p": lambda x, _: np.log1p(x),
     "zscore": lambda x, _: (x - x.mean()) / x.std(),
     "div_by_max_level": div_by_max_level,
     "div_by_num_nodes_in_level": div_by_num_nodes_in_level,
+    "div_by_avg_num_nodes_by_level": div_by_avg_num_nodes_by_level,
 }
