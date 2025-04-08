@@ -29,20 +29,6 @@ class SimpleReadout(BaseReadout):
         mlp_input_dim = sum(node_input_dims.values())
         if edge_input_dims is not None:
             mlp_input_dim += sum(edge_input_dims.values())
-        if hidden_dims is None:
-            hidden_dims = self._default_hidden_dims(
-                input_dim=mlp_input_dim, output_dim=output_dim
-            )
-        super().__init__(
-            node_input_dims=node_input_dims,
-            edge_input_dims=edge_input_dims,
-            output_dim=output_dim,
-            hidden_dims=hidden_dims,
-            dropout=dropout,
-            activation=activation,
-            aggregator=aggregator,  # Save in hparams
-            **kwargs,
-        )
 
         valid_aggregators = ["sum", "max", "mean", "all"]
         if aggregator not in valid_aggregators:
@@ -55,6 +41,21 @@ class SimpleReadout(BaseReadout):
 
         if aggregator == "all":
             mlp_input_dim *= 3
+        if hidden_dims is None:
+            hidden_dims = self._default_hidden_dims(
+                input_dim=mlp_input_dim, output_dim=output_dim
+            )
+        super().__init__(
+            node_input_dims=node_input_dims,
+            edge_input_dims=edge_input_dims,
+            output_dim=output_dim,
+            hidden_dims=hidden_dims,
+            dropout=dropout,
+            activation=activation,
+            aggregator=aggregator,  # Save in hparams
+            mlp_input_dim=mlp_input_dim,
+            **kwargs,
+        )
 
         self.mlp = get_mlp(
             input_dim=mlp_input_dim,
