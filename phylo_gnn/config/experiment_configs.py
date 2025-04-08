@@ -69,5 +69,6 @@ EXPERIMENT_2 = Config(
                 "dropout": 0.0,
             }
         ),
+        scheduler=None,
     ),
 )
