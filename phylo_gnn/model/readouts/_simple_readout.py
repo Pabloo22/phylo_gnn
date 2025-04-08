@@ -69,7 +69,7 @@ class SimpleReadout(BaseReadout):
     ) -> list[int]:
         hidden_dims = []
         current_dim = input_dim // 2
-        while current_dim > output_dim:
+        while current_dim > output_dim and current_dim > 40:
             hidden_dims.append(current_dim)
             current_dim //= 2
         return hidden_dims
