@@ -80,3 +80,10 @@ def node_features_with_level_nodes() -> dict[str, list[FeaturePipeline]]:
             FeaturePipeline("avg_branch_lengths_by_level", "log1p"),
         ],
     }
+
+
+if __name__ == "__main__":
+    # Print len for each node type of node_features_with_level_nodes
+    node_features = node_features_with_level_nodes()
+    for node_type, features in node_features.items():
+        print(f"{node_type}: {len(features)}")
