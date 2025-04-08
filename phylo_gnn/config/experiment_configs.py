@@ -48,3 +48,26 @@ EXPERIMENT_1 = Config(
         message_passing=MessagePassingConfig(parameters={"layer_norm": False}),
     ),
 )
+EXPERIMENT_2 = Config(
+    training_config=TrainingConfig(
+        run_name="exp_2", patience=40, num_workers=15
+    ),
+    dataset=PhyloCSVDatasetConfig(
+        csv_metadata_config=CSVMetadataConfig(
+            csv_filenames=[
+                "87_10k_nwk.csv",
+                "489_10k_nwk.csv",
+                "674_10k_nwk.csv",
+            ],
+            processed_filename="basic_processing_all",
+        ),
+    ),
+    model=PhyloGNNClassifierConfig(
+        message_passing=MessagePassingConfig(
+            parameters={
+                "layer_norm": False,
+                "dropout": 0.0,
+            }
+        ),
+    ),
+)
