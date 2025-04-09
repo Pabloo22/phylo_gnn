@@ -2,7 +2,7 @@ import numpy as np
 from numpy.testing import assert_array_equal, assert_allclose
 import pytest
 
-from phylo_gnn.feature_extraction import VectorTree
+from phylo_gnn.data.feature_extraction import VectorTree
 
 
 def test_initialization_and_num_nodes(vector_tree_levelorder: VectorTree):
@@ -168,7 +168,7 @@ def test_positions_in_level(vector_tree_levelorder: VectorTree):
     # Level 2 Children of Node 1: Node 3 (sum 0.0), Node 4 (sum 0.0)
     # -> Sorted [3, 4] (tie-break by index) -> Pos [0, 1]
     expected_positions = np.array([0, 0, 1, 0, 1], dtype=np.int64)
-    assert_array_equal(tree.set_positions_in_level(), expected_positions)
+    assert_array_equal(tree.position_in_level, expected_positions)
 
 
 def test_num_leaves_array(vector_tree_levelorder: VectorTree):

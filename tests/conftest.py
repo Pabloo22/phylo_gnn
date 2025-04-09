@@ -1,7 +1,7 @@
 # conftest.py
 import pytest
 import numpy as np
-from phylo_gnn.feature_extraction import VectorTree
+from phylo_gnn.data.feature_extraction import VectorTree
 
 
 @pytest.fixture(scope="module")
