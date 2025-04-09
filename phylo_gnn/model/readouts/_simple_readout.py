@@ -24,10 +24,11 @@ class SimpleReadout(BaseReadout):
         hidden_dims: list[int] | None = None,
         dropout: float = 0.1,
         activation: str = "relu",
+        use_edge_features: bool = True,
         **kwargs,
     ):
         mlp_input_dim = sum(node_input_dims.values())
-        if edge_input_dims is not None:
+        if edge_input_dims is not None and use_edge_features:
             mlp_input_dim += sum(edge_input_dims.values())
 
         valid_aggregators = ["sum", "max", "mean", "all"]
@@ -54,9 +55,10 @@ class SimpleReadout(BaseReadout):
             activation=activation,
             aggregator=aggregator,  # Save in hparams
             mlp_input_dim=mlp_input_dim,
+            use_edge_features=use_edge_features,
             **kwargs,
         )
-
+        self.use_edge_features = use_edge_features
         self.mlp = get_mlp(
             input_dim=mlp_input_dim,
             output_dim=output_dim,
@@ -124,7 +126,7 @@ class SimpleReadout(BaseReadout):
             all_features.append(agg_features)
 
         # Process edge attributes if provided
-        if edge_attributes_dict is not None:
+        if edge_attributes_dict is not None and self.use_edge_features:
             for edge_type in sorted(edge_attributes_dict.keys()):
                 attributes = edge_attributes_dict[edge_type]
 
