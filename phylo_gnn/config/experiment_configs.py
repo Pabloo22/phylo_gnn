@@ -163,11 +163,11 @@ DEBUG_3 = Config(
         weight_decay=0.00001,
     ),
 )
-EXPERIMENT_4 = Config(
+EXPERIMENT_4_1 = Config(
     training_config=TrainingConfig(
-        run_name="exp_4_levels_87",
+        run_name="exp_4_levels_87_tips_run_1",
         patience=20,
-        num_workers=15,
+        num_workers=8,
         max_epochs=1000,
     ),
     dataset=PhyloCSVDatasetConfig(
@@ -198,7 +198,7 @@ EXPERIMENT_4 = Config(
                 NodeNames.LEVEL.value: 96,
                 NodeNames.NODE.value: 28,
             },
-            edge_output_dims=4,
+            edge_output_dims=8,
         ),
         readout=ReadoutConfig(
             parameters={
