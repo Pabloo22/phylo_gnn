@@ -1,6 +1,8 @@
 from ._default_functions import (
     default_edge_attributes,
     default_node_features,
+    node_features_with_level_nodes,
+    edge_attributes_with_level_nodes,
 )
 from ._config import (
     Config,
@@ -27,4 +29,6 @@ __all__ = [
     "PhyloCSVDatasetConfig",
     "default_node_features",
     "default_edge_attributes",
+    "node_features_with_level_nodes",
+    "edge_attributes_with_level_nodes",
 ]
