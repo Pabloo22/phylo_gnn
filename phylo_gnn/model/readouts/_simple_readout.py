@@ -24,12 +24,22 @@ class SimpleReadout(BaseReadout):
         hidden_dims: list[int] | None = None,
         dropout: float = 0.1,
         activation: str = "relu",
-        use_edge_features: bool = True,
+        node_types_to_use: list[str] | None = None,
+        edge_attributes_to_use: list[tuple[str, str, str]] | None = None,
         **kwargs,
     ):
-        mlp_input_dim = sum(node_input_dims.values())
-        if edge_input_dims is not None and use_edge_features:
-            mlp_input_dim += sum(edge_input_dims.values())
+        if node_types_to_use is None:
+            node_types_to_use = list(node_input_dims.keys())
+
+        mlp_input_dim = sum(
+            node_input_dims[node_type] for node_type in node_types_to_use
+        )
+        if edge_attributes_to_use is None and edge_input_dims is not None:
+            edge_attributes_to_use = list(edge_input_dims.keys())
+            mlp_input_dim += sum(
+                edge_input_dims[edge_type]
+                for edge_type in edge_attributes_to_use
+            )
 
         valid_aggregators = ["sum", "max", "mean", "all"]
         if aggregator not in valid_aggregators:
@@ -55,10 +65,12 @@ class SimpleReadout(BaseReadout):
             activation=activation,
             aggregator=aggregator,  # Save in hparams
             mlp_input_dim=mlp_input_dim,
-            use_edge_features=use_edge_features,
+            node_types_to_use=node_types_to_use,
+            edge_attributes_to_use=edge_attributes_to_use,
             **kwargs,
         )
-        self.use_edge_features = use_edge_features
+        self.edge_attributes_to_use = edge_attributes_to_use
+        self.node_types_to_use = node_types_to_use
         self.mlp = get_mlp(
             input_dim=mlp_input_dim,
             output_dim=output_dim,
@@ -113,6 +125,8 @@ class SimpleReadout(BaseReadout):
 
         # Process node features
         for node_type in sorted(node_features_dict.keys()):
+            if node_type not in self.node_types_to_use:
+                continue
             features = node_features_dict[node_type]
 
             if batch_dict is None or node_type not in batch_dict:
@@ -126,8 +140,14 @@ class SimpleReadout(BaseReadout):
             all_features.append(agg_features)
 
         # Process edge attributes if provided
-        if edge_attributes_dict is not None and self.use_edge_features:
+        if (
+            edge_attributes_dict is not None
+            and self.edge_attributes_to_use is not None
+        ):
             for edge_type in sorted(edge_attributes_dict.keys()):
+                if edge_type not in self.edge_attributes_to_use:
+                    continue
+
                 attributes = edge_attributes_dict[edge_type]
 
                 if edge_batch_dict is None or edge_type not in edge_batch_dict:
@@ -144,5 +164,8 @@ class SimpleReadout(BaseReadout):
             raise ValueError("No node or edge features were provided")
 
         batched_features = torch.cat(all_features, dim=1)
+        assert (
+            batched_features.ndim == 2
+        ), f"Expected 2D tensor, got {batched_features.ndim}D tensor"
         logits = self.mlp(batched_features)
         return logits
