@@ -45,6 +45,7 @@ def train(
         logger,
         callbacks=callbacks,
         max_epochs=training_config.max_epochs,
+        gpu_id=training_config.gpu_id,
     )
     return execute_training(
         model, trainer, train_loader, val_loader, test_loader

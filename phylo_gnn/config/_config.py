@@ -35,6 +35,7 @@ class TrainingConfig:
     num_workers: int = 8
     early_stopping: bool = True
     patience: int = 10
+    gpu_id: int | None = None  # None = all
 
 
 @dataclass
