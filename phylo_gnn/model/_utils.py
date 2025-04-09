@@ -136,7 +136,7 @@ def get_mlp(
     for hidden_dim in hidden_dims:
         layers.append(nn.Linear(current_dim, hidden_dim))
         layers.append(activation())
-        if dropout > 0:
+        if dropout > 0 and hidden_dim > 35:
             layers.append(nn.Dropout(dropout))
         current_dim = hidden_dim
 
