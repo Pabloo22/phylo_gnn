@@ -1,4 +1,4 @@
-from phylo_gnn.config.experiment_configs import EXPERIMENT_4
+from phylo_gnn.config.experiment_configs import EXPERIMENT_5
 from phylo_gnn.config import Config
 from phylo_gnn.training import train
 
@@ -17,4 +17,4 @@ def main(config: Config) -> None:
 
 
 if __name__ == "__main__":
-    main(EXPERIMENT_4)
+    main(EXPERIMENT_5)

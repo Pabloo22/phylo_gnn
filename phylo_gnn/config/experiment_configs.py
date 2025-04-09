@@ -217,3 +217,62 @@ EXPERIMENT_4_1 = Config(
         weight_decay=0.00001,
     ),
 )
+EXPERIMENT_5 = Config(
+    training_config=TrainingConfig(
+        run_name="exp_4_levels_all_trees",
+        patience=20,
+        num_workers=8,
+        max_epochs=1000,
+        gpu_id=1,
+    ),
+    dataset=PhyloCSVDatasetConfig(
+        process_function_config=ProcessFunctionConfig(
+            node_features=node_features_with_level_nodes(),
+            edge_attributes=edge_attributes_with_level_nodes(),
+            edge_types=list(edge_attributes_with_level_nodes().keys()),
+        ),
+        csv_metadata_config=CSVMetadataConfig(
+            csv_filenames=[
+                "87_10k_nwk.csv",
+                "489_10k_nwk.csv",
+                "674_10k_nwk.csv",
+            ],
+            processed_filename="all_trees_level_nodes",
+        ),
+    ),
+    model=PhyloGNNClassifierConfig(
+        encoder=FeatureEncoderConfig(
+            node_output_dims={
+                NodeNames.LEVEL.value: 96,
+                NodeNames.NODE.value: 28,
+            },
+            edge_output_dims=8,
+        ),
+        message_passing=MessagePassingConfig(
+            parameters={
+                "layer_norm": False,
+                "dropout": 0.0,
+            },
+            node_output_dims={
+                NodeNames.LEVEL.value: 96,
+                NodeNames.NODE.value: 28,
+            },
+            edge_output_dims=8,
+        ),
+        readout=ReadoutConfig(
+            parameters={
+                "node_types_to_use": ["level"],
+                "edge_attributes_to_use": [
+                    (
+                        NodeNames.NODE.value,
+                        EdgeNames.HAS_PARENT.value,
+                        NodeNames.NODE.value,
+                    )
+                ],
+            },
+        ),
+        scheduler=None,
+        learning_rate=0.0003,
+        weight_decay=0.00001,
+    ),
+)
