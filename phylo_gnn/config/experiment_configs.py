@@ -244,7 +244,7 @@ EXPERIMENT_5 = Config(
         encoder=FeatureEncoderConfig(
             node_output_dims={
                 NodeNames.LEVEL.value: 96,
-                NodeNames.NODE.value: 28,
+                NodeNames.NODE.value: 42,
             },
             edge_output_dims=8,
         ),
@@ -255,13 +255,16 @@ EXPERIMENT_5 = Config(
             },
             node_output_dims={
                 NodeNames.LEVEL.value: 96,
-                NodeNames.NODE.value: 28,
+                NodeNames.NODE.value: 42,
             },
             edge_output_dims=8,
         ),
         readout=ReadoutConfig(
             parameters={
-                "node_types_to_use": ["level"],
+                "node_types_to_use": [
+                    NodeNames.LEVEL.value,
+                    NodeNames.NODE.value,
+                ],
                 "edge_attributes_to_use": [
                     (
                         NodeNames.NODE.value,
