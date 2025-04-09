@@ -74,11 +74,9 @@ def get_level_node_id(vector_tree: VectorTree) -> NDArray[np.float32]:
 def get_node_feature_array(
     vector_tree: VectorTree, feature_name: str
 ) -> NDArray[np.float32]:
-    if feature_name == "position_in_level":
-        return np.array(vector_tree.set_positions_in_level(), dtype=np.float32)
     if feature_name.startswith("avg_") and feature_name.endswith("_by_level"):
         attribute_name = feature_name[4 : -len("_by_level")]
         return vector_tree.avg_attr_by_level(attr=attribute_name)
     if feature_name == "level_node_id":
         return get_level_node_id(vector_tree)
-    return getattr(vector_tree, feature_name)
+    return np.array(getattr(vector_tree, feature_name), dtype=np.float32)
