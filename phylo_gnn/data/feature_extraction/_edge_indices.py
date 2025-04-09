@@ -28,7 +28,13 @@ def get_node_is_in_level_edge_index(
     """
     node_ids = np.arange(vector_tree.num_nodes, dtype=np.int64)
     level_ids = vector_tree.levels
-    return np.stack((node_ids, level_ids), axis=0)
+    return np.stack(
+        (
+            node_ids,
+            level_ids,
+        ),
+        axis=0,
+    )
 
 
 def get_level_has_node_edge_index(
@@ -65,8 +71,13 @@ EDGE_INDEX_EXTRACTORS_MAPPING: dict[EdgeType, EdgeIndexExtractor] = {
     (
         NodeNames.NODE.value,
         EdgeNames.IS_IN_LEVEL.value,
-        NodeNames.NODE.value,
+        NodeNames.LEVEL.value,
     ): get_node_is_in_level_edge_index,
+    (
+        NodeNames.LEVEL.value,
+        EdgeNames.HAS_NODE.value,
+        NodeNames.NODE.value,
+    ): get_level_has_node_edge_index,
 }
 
 
