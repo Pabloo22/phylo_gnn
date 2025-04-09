@@ -34,8 +34,9 @@ class SimpleReadout(BaseReadout):
         mlp_input_dim = sum(
             node_input_dims[node_type] for node_type in node_types_to_use
         )
-        if edge_attributes_to_use is None and edge_input_dims is not None:
-            edge_attributes_to_use = list(edge_input_dims.keys())
+        if edge_input_dims is not None:
+            if edge_attributes_to_use is None:
+                edge_attributes_to_use = list(edge_input_dims.keys())
             mlp_input_dim += sum(
                 edge_input_dims[edge_type]
                 for edge_type in edge_attributes_to_use
