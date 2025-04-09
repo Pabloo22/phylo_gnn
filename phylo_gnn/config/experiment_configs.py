@@ -337,3 +337,130 @@ EXPERIMENT_6 = Config(
         weight_decay=0.00001,
     ),
 )
+EXPERIMENT_7 = Config(
+    training_config=TrainingConfig(
+        run_name="exp_7_levels_87t",
+        patience=10,
+        num_workers=8,
+        max_epochs=1000,
+        gpu_id=None,
+    ),
+    dataset=PhyloCSVDatasetConfig(
+        process_function_config=ProcessFunctionConfig(
+            node_features=node_features_with_level_nodes(),
+            edge_attributes=edge_attributes_with_level_nodes(
+                only_node2level=True
+            ),
+            edge_types=list(
+                edge_attributes_with_level_nodes(only_node2level=True).keys()
+            ),
+        ),
+        csv_metadata_config=CSVMetadataConfig(
+            csv_filenames=["87_10k_nwk.csv"],
+            processed_filename="87_10k_level_nodes_no_level2node",
+        ),
+    ),
+    model=PhyloGNNClassifierConfig(
+        encoder=FeatureEncoderConfig(
+            node_output_dims={
+                NodeNames.LEVEL.value: 144,
+                NodeNames.NODE.value: 42,
+            },
+            edge_output_dims=8,
+        ),
+        message_passing=MessagePassingConfig(
+            parameters={
+                "layer_norm": True,
+                "dropout": 0.1,
+                "mlp_activation": "relu",
+            },
+            node_output_dims={
+                NodeNames.LEVEL.value: 144,
+                NodeNames.NODE.value: 42,
+            },
+            edge_output_dims=8,
+        ),
+        readout=ReadoutConfig(
+            parameters={
+                "node_types_to_use": [
+                    NodeNames.LEVEL.value,
+                    NodeNames.NODE.value,
+                ],
+                "edge_attributes_to_use": [
+                    (
+                        NodeNames.NODE.value,
+                        EdgeNames.HAS_PARENT.value,
+                        NodeNames.NODE.value,
+                    )
+                ],
+            },
+        ),
+        scheduler=None,
+        learning_rate=0.0005,
+        weight_decay=0.00001,
+    ),
+)
+EXPERIMENT_8 = Config(
+    training_config=TrainingConfig(
+        run_name="exp_8_levels_87t_more_dim",
+        patience=10,
+        num_workers=8,
+        max_epochs=1000,
+        gpu_id=None,
+    ),
+    dataset=PhyloCSVDatasetConfig(
+        process_function_config=ProcessFunctionConfig(
+            node_features=node_features_with_level_nodes(),
+            edge_attributes=edge_attributes_with_level_nodes(
+                only_node2level=True
+            ),
+            edge_types=list(
+                edge_attributes_with_level_nodes(only_node2level=True).keys()
+            ),
+        ),
+        csv_metadata_config=CSVMetadataConfig(
+            csv_filenames=["87_10k_nwk.csv"],
+            processed_filename="87_10k_level_nodes_no_level2node",
+        ),
+    ),
+    model=PhyloGNNClassifierConfig(
+        encoder=FeatureEncoderConfig(
+            node_output_dims={
+                NodeNames.LEVEL.value: 144,
+                NodeNames.NODE.value: 42,
+            },
+            edge_output_dims=8,
+        ),
+        message_passing=MessagePassingConfig(
+            parameters={
+                "layer_norm": True,
+                "dropout": 0.,
+                "mlp_activation": "elu",
+            },
+            node_output_dims={
+                NodeNames.LEVEL.value: 144,
+                NodeNames.NODE.value: 42,
+            },
+            edge_output_dims=8,
+        ),
+        readout=ReadoutConfig(
+            parameters={
+                "node_types_to_use": [
+                    NodeNames.LEVEL.value,
+                ],
+                "edge_attributes_to_use": [
+                    (
+                        NodeNames.NODE.value,
+                        EdgeNames.HAS_PARENT.value,
+                        NodeNames.NODE.value,
+                    )
+                ],
+                "aggregator": "max",
+                "dropout": 0,
+            },
+        ),
+        scheduler=None,
+        learning_rate=0.0002,
+        weight_decay=0.00005,
+    ),
+)
