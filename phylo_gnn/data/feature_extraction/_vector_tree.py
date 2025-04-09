@@ -48,10 +48,7 @@ class VectorTree:
         is set to -1.
         """
         if self._positions_by_level is None:
-            raise ValueError(
-                "Position in level is not computed yet. "
-                "Call `set_position_in_level` first."
-            )
+            return self.set_positions_in_level()
         return self._positions_by_level
 
     @property
@@ -580,3 +577,30 @@ class VectorTree:
         sum_per_level = np.bincount(self.levels, weights=getattr(self, attr))
         avg_per_level = sum_per_level / self.num_nodes_by_level
         return avg_per_level.astype(np.float32)
+
+    def attr_by_level(
+        self, attr: str = "branch_lengths", aggregator: str = "max"
+    ) -> NDArray[np.float32]:
+        """Returns the maximum branch length at each level of the tree."""
+        # Max branch lengths per level in a vectorized way.
+        aggregators: dict[str, Callable[[NDArray], NDArray]] = {
+            "max": np.max,
+            "min": np.min,
+            "std": np.std,
+            "mean": np.mean,
+            "median": np.median,
+        }
+        if aggregator not in aggregators:
+            raise ValueError(
+                f"Invalid aggregator: {aggregator}. "
+                f"Supported aggregators: {list(aggregators.keys())}"
+            )
+        if aggregator == "mean":  # More efficient to use avg_attr_by_level
+            return self.avg_attr_by_level(attr=attr)
+        aggregator_fn = aggregators[aggregator]
+        agg_per_level = np.zeros(self.max_level + 1, dtype=np.float32)
+        for level, level_nodes in self.iter_by_level():
+            agg_per_level[level] = aggregator_fn(
+                getattr(self, attr)[level_nodes]
+            )
+        return agg_per_level
