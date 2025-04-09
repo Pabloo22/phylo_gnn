@@ -517,11 +517,13 @@ class PhyloGNNClassifier(pl.LightningModule):
             stage: Either 'val' or 'test'
         """
         # Generate confusion matrix
-        cm = confusion_matrix(targets, preds, labels=self.label_names)
+        cm = confusion_matrix(targets, preds)
 
         # Create a figure
         fig, ax = plt.subplots(figsize=(10, 8))
-        disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+        disp = ConfusionMatrixDisplay(
+            confusion_matrix=cm, display_labels=self.label_names
+        )
         disp.plot(ax=ax, cmap="Blues", values_format="d")
         # plt.title(f"{stage.capitalize()} Confusion Matrix")
 
