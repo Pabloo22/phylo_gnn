@@ -116,17 +116,22 @@ def node_features_with_level_nodes() -> dict[str, list[FeaturePipeline]]:
     return node_features
 
 
-def edge_attributes_with_level_nodes() -> (
-    dict[tuple[str, str, str], list[FeaturePipeline]]
-):
+def edge_attributes_with_level_nodes(
+    only_node2level: bool = False,
+) -> dict[tuple[str, str, str], list[FeaturePipeline]]:
     edge_attributes = default_edge_attributes()
-    edge_attributes[
-        (NodeNames.LEVEL.value, EdgeNames.HAS_NODE.value, NodeNames.NODE.value)
-    ] = [
-        FeaturePipeline(
-            "level2node_position_in_level", "div_by_num_nodes_in_level"
-        )
-    ]
+    if not only_node2level:
+        edge_attributes[
+            (
+                NodeNames.LEVEL.value,
+                EdgeNames.HAS_NODE.value,
+                NodeNames.NODE.value,
+            )
+        ] = [
+            FeaturePipeline(
+                "level2node_position_in_level", "div_by_num_nodes_in_level"
+            )
+        ]
     edge_attributes[
         (
             NodeNames.NODE.value,
@@ -137,6 +142,15 @@ def edge_attributes_with_level_nodes() -> (
         FeaturePipeline(
             "node2level_position_in_level", "div_by_num_nodes_in_level"
         )
+    ]
+    edge_attributes[
+        (
+            NodeNames.LEVEL.value,
+            EdgeNames.NEXT_TO.value,
+            NodeNames.LEVEL.value,
+        )
+    ] = [
+        FeaturePipeline("distance_between_levels", "log1p"),
     ]
     return edge_attributes
 
