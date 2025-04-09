@@ -464,3 +464,69 @@ EXPERIMENT_8 = Config(
         weight_decay=0.00005,
     ),
 )
+EXPERIMENT_9 = Config(
+    training_config=TrainingConfig(
+        run_name="exp_489t_levels_more_dim",
+        patience=20,
+        num_workers=8,
+        max_epochs=1000,
+        gpu_id=0,
+        train_val_test_split=(0.85, 0.05, 0.1),
+    ),
+    dataset=PhyloCSVDatasetConfig(
+        process_function_config=ProcessFunctionConfig(
+            node_features=node_features_with_level_nodes(),
+            edge_attributes=edge_attributes_with_level_nodes(
+                only_node2level=True
+            ),
+            edge_types=list(
+                edge_attributes_with_level_nodes(only_node2level=True).keys()
+            ),
+        ),
+        csv_metadata_config=CSVMetadataConfig(
+            csv_filenames=["489_10k_nwk.csv"],
+            processed_filename="489_10k_level_nodes_no_level2node",
+        ),
+    ),
+    model=PhyloGNNClassifierConfig(
+        encoder=FeatureEncoderConfig(
+            node_output_dims={
+                NodeNames.LEVEL.value: 144,
+                NodeNames.NODE.value: 42,
+            },
+            edge_output_dims=8,
+        ),
+        message_passing=MessagePassingConfig(
+            parameters={
+                "layer_norm": False,
+                "dropout": 0.0,
+                "mlp_activation": "elu",
+            },
+            node_output_dims={
+                NodeNames.LEVEL.value: 144,
+                NodeNames.NODE.value: 42,
+            },
+            edge_output_dims=8,
+        ),
+        readout=ReadoutConfig(
+            parameters={
+                "node_types_to_use": [
+                    NodeNames.LEVEL.value,
+                    NodeNames.NODE.value,
+                ],
+                "edge_attributes_to_use": [
+                    (
+                        NodeNames.NODE.value,
+                        EdgeNames.HAS_PARENT.value,
+                        NodeNames.NODE.value,
+                    )
+                ],
+                "aggregator": "all",
+                "dropout": 0.1,
+            },
+        ),
+        scheduler=None,
+        learning_rate=0.0003,
+        weight_decay=0.00005,
+    ),
+)
