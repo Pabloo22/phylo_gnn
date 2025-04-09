@@ -470,7 +470,7 @@ EXPERIMENT_9 = Config(
         patience=20,
         num_workers=8,
         max_epochs=1000,
-        gpu_id=0,
+        gpu_id=1,
         train_val_test_split=(0.85, 0.05, 0.1),
     ),
     dataset=PhyloCSVDatasetConfig(
