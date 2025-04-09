@@ -1,3 +1,4 @@
+import time
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import (
     ModelCheckpoint,
@@ -35,9 +36,17 @@ def configure_callbacks(
     """
     callbacks: list[Callback] = []
 
+    # get current day and hour for the checkpoint directory
+    current_time = time.localtime()
+    current_day = time.strftime("%Y-%m-%d", current_time)
+    current_hour = time.strftime("%H", current_time)
+    checkpoint_dir = f"{current_day}_{current_hour}"
+    dirpath = get_project_path() / "models" / checkpoint_dir
+    # Create the directory if it doesn't exist
+    dirpath.mkdir(parents=True, exist_ok=True)
     # Model checkpoint callback
     checkpoint_callback = ModelCheckpoint(
-        dirpath=get_project_path() / "models",
+        dirpath=dirpath,
         filename="model-{epoch:02d}-{val_loss:.2f}-{val_f1:.4f}",
         monitor=monitor,
         mode=mode,
