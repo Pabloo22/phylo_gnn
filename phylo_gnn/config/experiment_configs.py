@@ -275,7 +275,7 @@ EXPERIMENT_5 = Config(
             },
         ),
         scheduler=None,
-        learning_rate=0.0003,
+        learning_rate=0.0004,
         weight_decay=0.00001,
     ),
 )
