@@ -43,10 +43,12 @@ def get_level2node_position_in_level(
 ) -> NDArray[np.float32]:
     """Returns the position in level for the nodes in the edge index."""
     levels, node_indices = edge_index
-    if len(np.unique(levels)) <= len(np.unique(node_indices)):
+    if len(np.unique(levels)) > len(np.unique(node_indices)):
         raise ValueError(
             "First row must represent levels and second row "
-            "must represent node indices."
+            "must represent node indices. "
+            f"First row: {levels}\n"
+            f"Second row: {node_indices}"
         )
     return vector_tree.position_in_level[node_indices]
 
@@ -56,7 +58,7 @@ def get_node2level_position_in_level(
     edge_index: NDArray[np.int64],
 ) -> NDArray[np.float32]:
     node_indices, levels = edge_index
-    if len(np.unique(levels)) <= len(np.unique(node_indices)):
+    if len(np.unique(levels)) > len(np.unique(node_indices)):
         raise ValueError(
             "Second row must represent node indices and first "
             "row must represent levels."
