@@ -24,6 +24,7 @@ from phylo_gnn.model import (
 from phylo_gnn.model.feature_encoders import BaseEncoder
 from phylo_gnn.model.readouts import BaseReadout
 from phylo_gnn.model.message_passing import BaseMessagePassing
+from phylo_gnn.data import DEFAULT_LABEL_NAMES
 
 
 class PhyloGNNClassifier(pl.LightningModule):
@@ -67,11 +68,15 @@ class PhyloGNNClassifier(pl.LightningModule):
         scheduler_params: dict[str, Any] | None = None,
         eval_interval_steps: int | None = None,
         log_confusion_matrix: bool = True,
+        label_names: list[str] | None = None,
     ):
         super().__init__()
         self.save_hyperparameters(
             ignore=["encoder", "message_passing", "readout"]
         )
+        if label_names is None and num_classes == 6:
+            label_names = DEFAULT_LABEL_NAMES
+        self.label_names = label_names
 
         # Model components
         self.encoder = encoder
@@ -512,13 +517,13 @@ class PhyloGNNClassifier(pl.LightningModule):
             stage: Either 'val' or 'test'
         """
         # Generate confusion matrix
-        cm = confusion_matrix(targets, preds)
+        cm = confusion_matrix(targets, preds, labels=self.label_names)
 
         # Create a figure
         fig, ax = plt.subplots(figsize=(10, 8))
         disp = ConfusionMatrixDisplay(confusion_matrix=cm)
         disp.plot(ax=ax, cmap="Blues", values_format="d")
-        plt.title(f"{stage.capitalize()} Confusion Matrix")
+        # plt.title(f"{stage.capitalize()} Confusion Matrix")
 
         # Log to wandb
         self.logger.experiment.log(
