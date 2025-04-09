@@ -567,7 +567,9 @@ class VectorTree:
     @cached_property
     def num_nodes_by_level(self) -> NDArray[np.int64]:
         """Returns the number of nodes at each level of the tree."""
-        return np.bincount(self.levels, minlength=self.max_level + 1)
+        result = np.bincount(self.levels, minlength=self.max_level + 1)
+        assert np.min(result) > 0
+        return result
 
     def avg_attr_by_level(
         self, attr: str = "branch_lengths"
