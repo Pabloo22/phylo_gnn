@@ -220,8 +220,8 @@ EXPERIMENT_4_1 = Config(
 EXPERIMENT_5 = Config(
     training_config=TrainingConfig(
         run_name="exp_5_levels_all_trees",
-        patience=20,
-        num_workers=8,
+        patience=30,
+        num_workers=15,
         max_epochs=1000,
         gpu_id=1,
     ),
