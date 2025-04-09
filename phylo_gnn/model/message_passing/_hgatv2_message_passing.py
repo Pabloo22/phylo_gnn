@@ -24,7 +24,7 @@ class HGATv2MessagePassing(BaseMessagePassing):
         add_self_loops: bool = True,
         layer_norm: bool = True,
         negative_slope: float = 0.2,
-        mlp_num_layers: int = 1,
+        mlp_num_layers: int = 0,
         mlp_dropout: float | None = None,
         mlp_activation: str = "elu",
         **kwargs,
@@ -152,7 +152,7 @@ class HGATv2MessagePassing(BaseMessagePassing):
                 concat=self.concat_heads,
                 negative_slope=self.negative_slope,
                 dropout=self.dropout_p,
-                add_self_loops=self.add_self_loops,
+                add_self_loops=self.add_self_loops and src_type == dst_type,
                 edge_dim=edge_dim,
                 **self.kwargs,
             )
