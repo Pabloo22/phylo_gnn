@@ -37,9 +37,38 @@ def get_topological_distances(
     return distances
 
 
+def get_level2node_position_in_level(
+    vector_tree: VectorTree,
+    edge_index: NDArray[np.int64],
+) -> NDArray[np.float32]:
+    """Returns the position in level for the nodes in the edge index."""
+    levels, node_indices = edge_index
+    if len(np.unique(levels)) <= len(np.unique(node_indices)):
+        raise ValueError(
+            "First row must represent levels and second row "
+            "must represent node indices."
+        )
+    return vector_tree.position_in_level[node_indices]
+
+
+def get_node2level_position_in_level(
+    vector_tree: VectorTree,
+    edge_index: NDArray[np.int64],
+) -> NDArray[np.float32]:
+    node_indices, levels = edge_index
+    if len(np.unique(levels)) <= len(np.unique(node_indices)):
+        raise ValueError(
+            "Second row must represent node indices and first "
+            "row must represent levels."
+        )
+    return vector_tree.position_in_level[node_indices]
+
+
 EDGE_FEATURE_EXTRACTORS_MAPPING: dict[str, EdgeFeatureExtractor] = {
     "distances": get_distances,
     "topological_distances": get_topological_distances,
+    "level2node_position_in_level": get_level2node_position_in_level,
+    "node2level_position_in_level": get_node2level_position_in_level,
 }
 
 
