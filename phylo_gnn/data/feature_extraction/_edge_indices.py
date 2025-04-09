@@ -125,6 +125,11 @@ EDGE_INDEX_EXTRACTORS_MAPPING: dict[EdgeType, EdgeIndexExtractor] = {
         EdgeNames.HAS_NODE.value,
         NodeNames.NODE.value,
     ): get_level_has_node_edge_index,
+    (
+        NodeNames.LEVEL.value,
+        EdgeNames.NEXT_TO.value,
+        NodeNames.LEVEL.value,
+    ): get_level_next_to_level_edge_index,
 }
 
 
