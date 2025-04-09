@@ -46,6 +46,7 @@ class EdgeNames(str, enum.Enum):
     HAS_ADJACENT_LEVEL_POSITION = "has_adjacent_level_position"
     IS_IN_LEVEL = "is_in_level"
     HAS_NODE = "has_node"
+    NEXT_TO = "next_to"
 
 
 class FeaturePipeline(NamedTuple):

@@ -66,11 +66,31 @@ def get_node2level_position_in_level(
     return vector_tree.position_in_level[node_indices]
 
 
+def get_distance_between_levels(
+    vector_tree: VectorTree,
+    edge_index: NDArray[np.int64],
+) -> NDArray[np.float32]:
+    """Returns the distance between the levels in the edge index.
+
+    This function can be used to get edge attributes for the edges in the
+    edge index.
+    """
+    avg_distance_to_root_by_level = vector_tree.avg_attr_by_level(
+        "distance_to_root"
+    )
+    distance_between_levels_matrix = np.abs(
+        avg_distance_to_root_by_level[edge_index[0]]
+        - avg_distance_to_root_by_level[edge_index[1]]
+    )
+    return distance_between_levels_matrix.astype(np.float32)
+
+
 EDGE_FEATURE_EXTRACTORS_MAPPING: dict[str, EdgeFeatureExtractor] = {
     "distances": get_distances,
     "topological_distances": get_topological_distances,
     "level2node_position_in_level": get_level2node_position_in_level,
     "node2level_position_in_level": get_node2level_position_in_level,
+    "distance_between_levels": get_distance_between_levels,
 }
 
 

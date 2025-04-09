@@ -143,6 +143,15 @@ def edge_attributes_with_level_nodes(
             "node2level_position_in_level", "div_by_num_nodes_in_level"
         )
     ]
+    edge_attributes[
+        (
+            NodeNames.LEVEL.value,
+            EdgeNames.NEXT_TO.value,
+            NodeNames.LEVEL.value,
+        )
+    ] = [
+        FeaturePipeline("distance_between_levels", "log1p"),
+    ]
     return edge_attributes
 
 
