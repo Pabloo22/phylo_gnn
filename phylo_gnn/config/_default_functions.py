@@ -60,8 +60,8 @@ def default_edge_attributes() -> (
 def node_features_with_level_nodes() -> dict[str, list[FeaturePipeline]]:
     node_features = default_node_features()
     node_features[NodeNames.LEVEL.value] = [
-        FeaturePipeline("num_nodes", "div_by_avg_num_nodes_by_level"),
-        FeaturePipeline("num_nodes", "log1p"),
+        FeaturePipeline("num_nodes_by_level", "div_by_avg_num_nodes_by_level"),
+        FeaturePipeline("num_nodes_by_level", "log1p"),
         FeaturePipeline("level_node_id", "div_by_max_level"),
         FeaturePipeline("level_node_id", "log1p"),
         # ---- AVG DISTANCE FEATURES----
